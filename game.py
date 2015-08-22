@@ -156,7 +156,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			self.trigger('block')
 
 	def do_throw(self):
-		if state in ('standing','block'):
+		if self.state in ('standing','block'):
 			self.changeState('standing')
 			self.trigger('throw')
 
@@ -186,7 +186,12 @@ class Hurter(GameEntity,GameEntity.mixin.Movement):
 		game.scheduleAfter(ttl,self.destroy)
 
 	def intersectsPlayer(self,player):
-		pass #TODO: Искать пересечение с игроком
+		px,py = player.position()
+		x,y = self.position()
+		return (x-self.radius < px+player.width/2) and\
+			   (x+self.radius > px-player.width/2) and\
+			   (y-self.radius < py+player.height/2) and\
+			   (y+self.radius > py+player.height/2)
 
 	def update(self,dt):
 		for player in self.game.getEntitiesByTag('player'):
