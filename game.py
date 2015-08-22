@@ -108,7 +108,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 		self.defence_level = 0
 
-		self.healeh = 100.0
+		self.health = 100.0
 
 
 	def update(self,dt):
@@ -139,7 +139,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 	def hurt(self,hurter):
 		if self.defence_level < hurter.level:
-			self.healeh -= hurter.damage
+			self.health -= hurter.damage
 			self.trigger('hurt',hurter.damage)
 
 	def specialAvailiable(self):
