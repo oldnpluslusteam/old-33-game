@@ -1,0 +1,14 @@
+{
+	"stand" : [
+		{
+			"img" : "rc/img/32x32fg.png",
+			"t" : 1,
+			"anchor" : "center"
+		},
+		{
+			"img" : "rc/img/32x32fgA.png",
+			"t" : 0.3,
+			"anchor" : "center"
+		}
+	]
+}

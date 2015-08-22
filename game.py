@@ -46,6 +46,7 @@ class FightingCameraController(GameEntity,GameEntity.mixin.CameraTarget):
 		self._pad = 50,50
 		self._interp = 1.0
 		self._offset = 0, 0
+		self.id = 'camera-controller'
 
 	def update(self,dt):
 		targets = self.game.getEntitiesByTag('camera-target')
@@ -77,13 +78,17 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 	_MOVEMENT_LIMIT_LEFT = -100
 	_MOVEMENT_LIMIT_RIGHT = 100
 
+	events = [
+		('state-change','on_state_change')
+	]
+
 	def spawn(self):
 		self.addTags('camera-target','player')
 
 		self.state = 'standing'
 		self.animation = 'stand'
 
-		self.width = 100
+		self.width = 32
 		self.height = 200
 
 		self.defence_level = 0
@@ -91,9 +96,31 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 		self.healeh = 100.0
 
 	def update(self,dt):
-		self.velocity = self.velocity[0] - self.velocity[0] * dt, self.velocity[1] - 10
+		self.velocity = self.velocity[0] - self.velocity[0] * dt, self.velocity[1] - 500 * dt
+		if self.position[1] <= PlayerBase._MOVEMENT_LIMIT_BOTTOM:
+			self.changeState('standing')
 		self.position = min(PlayerBase._MOVEMENT_LIMIT_RIGHT,max(PlayerBase._MOVEMENT_LIMIT_LEFT,self.position[0])), \
-						min(PlayerBase._MOVEMENT_LIMIT_BOTTOM,self.position[1])
+						max(PlayerBase._MOVEMENT_LIMIT_BOTTOM,self.position[1])
+		if self.id == 'player-right':
+			left = self.game.getEntityById('player-left')
+			if (self.position[0]-self.width/2) <= (left.position[0]+left.width/2):
+				self.velocity = 0, self.velocity[1]
+				self.position = left.position[0]+(left.width+self.width)/2, self.position[1]
+		elif self.id == 'player-left':
+			right = self.game.getEntityById('player-right')
+			if (self.position[0]+self.width/2) >= (right.position[0]-right.width/2):
+				self.velocity = 0, self.velocity[1]
+				self.position = right.position[0] - (self.width + right.width)/2, self.position[1]
+
+
+	def changeState(self,to,fromState=None):
+		if fromState is None or fromState == self.state:
+			self.state = to
+			self.trigger('state-change')
+
+	def on_state_change(self):
+		if self.state == 'jump':
+			pass
 
 	def hurt(self,hurter):
 		if self.defence_level < hurter.level:
@@ -101,12 +128,15 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 	def do_go(self,direction):
 		if self.state != 'lying':
-			self.velocity = direction * 50, self.velocity[1]
+			self.velocity = direction * 100, self.velocity[1]
 
 	def do_hit(self):
 		pass
 
 	def do_smash(self):
+		pass
+
+	def do_block(self):
 		pass
 
 	def do_throw(self):
@@ -117,9 +147,13 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 	def do_jump(self):
 		if self.state == 'standing':
-			self.velocity = self.velocity[0], 10
+			self.velocity = self.velocity[0], 500
+			self.changeState('jump')
 
 class Hurter(GameEntity,GameEntity.mixin.Movement):
+	'''
+	Причинятор ущерба.
+	'''
 	def __init__(self,game,owner,position,velocity,ttl,damage,radius,level):
 		GameEntity.__init__(self)
 		game.addEntity(self)
@@ -153,32 +187,48 @@ class GameLayer(GameLayer_):
 	'''
 	Наследник игрового слоя.
 	'''
+	_KEYMAP = {
+		KEY.W : {'player': 'left', 'action': 'jump'},
+		KEY.A : {'player': 'left', 'action': 'go', 'kw': {'direction':-1}},
+		KEY.D : {'player': 'left', 'action': 'go', 'kw': {'direction':1}},
+		KEY.Z : {'player': 'left', 'action': 'hit'},
+		KEY.X : {'player': 'left', 'action': 'smash'},
+		KEY.C : {'player': 'left', 'action': 'special'},
+		KEY.V : {'player': 'left', 'action': 'throw'},
+		KEY.B : {'player': 'left', 'action': 'block'},
+
+		KEY.UP : {'player': 'right', 'action': 'jump'},
+		KEY.LEFT : {'player': 'right', 'action': 'go', 'kw': {'direction':-1}},
+		KEY.RIGHT : {'player': 'right', 'action': 'go', 'kw': {'direction':1}},
+		KEY.NUM_1 : {'player': 'right', 'action': 'hit'},
+		KEY.NUM_2 : {'player': 'right', 'action': 'smash'},
+		KEY.NUM_3 : {'player': 'right', 'action': 'special'},
+		KEY.NUM_4 : {'player': 'right', 'action': 'throw'},
+		KEY.NUM_5 : {'player': 'right', 'action': 'block'},
+	}
+
 	def init(self,*args,**kwargs):
-		self._player = self._game.getEntityById('player')
-		self._camera_controller = FightingCameraController()
-		self._game.addEntity(self._camera_controller)
+		self._players = {
+			'left':self._game.getEntityById('player-left'),
+			'right':self._game.getEntityById('player-right')
+			}
+		self._camera_controller = self._game.getEntityById('camera-controller')
 		self._camera.setController(self._camera_controller)
 
 	def on_key_press(self,key,mod):
 		'''
 		Здесь происходит управление с клавиатуры.
 		'''
-		if key == KEY.UP:
-			self._player.rotation += 20
-		if key == KEY.DOWN:
-			self._player.rotation -= 20
+		if key in GameLayer._KEYMAP:
+			k = GameLayer._KEYMAP[key]
+			kwa = k.get('kw',{})
+			getattr(self._players[k['player']],'do_'+k['action'])(**kwa);
 
 	def on_mouse_press(self,x,y,b,mod):
 		'''
 		Управление с мыши.
 		'''
 		self._player.position = self._camera.unproject((x,y))
-
-	def draw(self):
-		GameLayer_.draw(self)
-		tep = self._camera.project(self._game.getEntityById('test0').position)
-		DrawWireframeRect(Rect(left=tep[0],bottom=tep[1],width=100,height=100))
-
 
 @Screen.ScreenClass('STARTUP')
 class StartupScreen(Screen):
@@ -189,6 +239,13 @@ class StartupScreen(Screen):
 		game = Game()
 
 		game.loadFromJSON('rc/lvl/level0.json')
+
+		for pid in ('player-left','player-right'):
+			p = PlayerBase()
+			game.addEntity(p)
+			p.animations = 'rc/ani/player-test.json'
+			p.position = 100 if pid == 'player-right' else -100, 0
+			p.id = pid
 
 		self.pushLayerFront(GameLayer(game=game,camera=Camera()))
 

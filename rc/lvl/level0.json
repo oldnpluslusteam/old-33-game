@@ -1,23 +1,12 @@
 {
 	"entities" : [
 		{
-			"_class": "test-entity",
-			"position": [100,253],
-			"animations": "rc/ani/test.json",
-			"animation": "default"
-		},
-		{
-			"_class": "test-entity",
-			"position": [100,253],
-			"animations": "rc/ani/test.json",
-			"animation": "non-default",
-			"i": -20,
-			"id": "test0"
-		},
-		{
 			"_class": "static-entity",
 			"sprite": "rc/img/256x256bg.png",
 			"spriteAnchor": "center"
+		},
+		{
+			"_class": "camera-controller"
 		}
 	]
 }
