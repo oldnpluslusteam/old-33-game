@@ -1,0 +1,10 @@
+{
+	"stand" : [
+		{
+			"img" : "rc/img/fg-girl-st.png",
+			"t" : 1,
+			"anchor" : "center",
+			"transform": {"flip_x":false}
+		}
+	]
+}
