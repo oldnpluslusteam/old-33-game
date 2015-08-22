@@ -186,8 +186,8 @@ class Hurter(GameEntity,GameEntity.mixin.Movement):
 		game.scheduleAfter(ttl,self.destroy)
 
 	def intersectsPlayer(self,player):
-		px,py = player.position()
-		x,y = self.position()
+		px,py = player.position
+		x,y = self.position
 		return (x-self.radius < px+player.width/2) and\
 			   (x+self.radius > px-player.width/2) and\
 			   (y-self.radius < py+player.height/2) and\
@@ -287,7 +287,7 @@ class StartupScreen(Screen):
 		game.loadFromJSON('rc/lvl/level0.json')
 
 		for pid in ('player-left','player-right'):
-			p = PlayerBase()
+			p = NaotaFighter()
 			game.addEntity(p)
 			p.animations = 'rc/ani/player-test.json'
 			p.position = 100 if pid == 'player-right' else -100, 0
@@ -336,3 +336,12 @@ class StartupScreen(Screen):
 
 	def on_key_press(self,key,mod):
 		pass#GAME_CONSOLE.write('SSC:Key down:',KEY.symbol_string(key),'(',key,') [+',KEY.modifiers_string(mod),']')
+
+class NaotaFighter(PlayerBase):
+	def on_block(self):
+		self.defence_level = 100500
+
+	def on_hit(self):
+		GAME_CONSOLE.write('Naota hit')
+		Hurter(self.game,self,self.position,(50,0),1,50,50,1)
+
