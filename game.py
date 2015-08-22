@@ -84,6 +84,8 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 	_MOVEMENT_LIMIT_LEFT = -1000
 	_MOVEMENT_LIMIT_RIGHT = 1000
 
+	FIGHTER_NAME = 'Anonymous'
+
 	events = [
 		('state-change','on_state_change'),
 		('jump','on_jump'),
@@ -91,7 +93,8 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 		('block','on_block'),
 		('smash','on_smash'),
 		('throw','on_throw'),
-		('special','on_special')
+		('special','on_special'),
+		('hurt','on_hurt')
 	]
 
 	def spawn(self):
@@ -105,7 +108,8 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 		self.defence_level = 0
 
-		self.healeh = 100.0
+		self.health = 100.0
+
 
 	def update(self,dt):
 		self.velocity = self.velocity[0] - self.velocity[0] * dt, self.velocity[1] - 1000 * dt
@@ -135,7 +139,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 	def hurt(self,hurter):
 		if self.defence_level < hurter.level:
-			self.healeh -= hurter.damage
+			self.health -= hurter.damage
 			self.trigger('hurt',hurter.damage)
 
 	def specialAvailiable(self):
@@ -169,12 +173,19 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			self.velocity = self.velocity[0], 1000
 			self.changeState('jump')
 
-class Hurter(GameEntity,GameEntity.mixin.Movement):
+	def faceToTarget(self, x):
+		return x if (self.id == 'player-left') else -x
+
+	def consoleInfo(self,*args):
+		GAME_CONSOLE.write("{} ({}) ".format(self.FIGHTER_NAME,self.id),*args)
+
+class Hurter(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Sprite):
 	'''
 	Причинятор ущерба.
 	'''
-	def __init__(self,game,owner,position,velocity,ttl,damage,radius,level):
-		GameEntity.__init__(self)
+	@staticmethod
+	def static_init(game,owner,position,velocity,ttl,damage,radius,level):
+		self = Hurter()
 		game.addEntity(self)
 
 		self.position = position
@@ -184,6 +195,9 @@ class Hurter(GameEntity,GameEntity.mixin.Movement):
 		self.radius = radius
 		self.level = level
 		game.scheduleAfter(ttl,self.destroy)
+		self.sprite = "rc/img/32x32fg.png"
+		self.scale = (self.radius/16.0)
+		return self
 
 	def intersectsPlayer(self,player):
 		px,py = player.position
@@ -191,14 +205,16 @@ class Hurter(GameEntity,GameEntity.mixin.Movement):
 		return (x-self.radius < px+player.width/2) and\
 			   (x+self.radius > px-player.width/2) and\
 			   (y-self.radius < py+player.height/2) and\
-			   (y+self.radius > py+player.height/2)
+			   (y+self.radius > py-player.height/2)
 
 	def update(self,dt):
 		for player in self.game.getEntitiesByTag('player'):
 			if player != self.owner:
 				if self.intersectsPlayer(player):
 					player.hurt(self)
+					self._sprite = None
 					self.destroy()
+
 
 @GameEntity.defineClass('static-entity')
 class StaticEntity(GameEntity,GameEntity.mixin.Sprite):
@@ -287,7 +303,7 @@ class StartupScreen(Screen):
 		game.loadFromJSON('rc/lvl/level0.json')
 
 		for pid in ('player-left','player-right'):
-			p = NaotaFighter()
+			p = (NaotaFighter()if pid == 'player-right' else HarukoFighter())
 			game.addEntity(p)
 			p.animations = 'rc/ani/player-test-'+pid+'.json'
 			p.position = 100 if pid == 'player-right' else -100, 0
@@ -338,10 +354,39 @@ class StartupScreen(Screen):
 		pass#GAME_CONSOLE.write('SSC:Key down:',KEY.symbol_string(key),'(',key,') [+',KEY.modifiers_string(mod),']')
 
 class NaotaFighter(PlayerBase):
+	FIGHTER_NAME = 'Naota'
+
 	def on_block(self):
 		self.defence_level = 100500
 
 	def on_hit(self):
-		GAME_CONSOLE.write('Naota hit')
-		Hurter(self.game,self,self.position,(50,0),1,50,50,1)
+		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,50,16,1)
+		self.consoleInfo('strike')
 
+	def on_hurt(self, damage):
+		self.consoleInfo('damaged',damage)
+
+	def on_smash(self):
+		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,50,32,1)
+		self.consoleInfo('smashing')
+
+class HarukoFighter(PlayerBase):
+	FIGHTER_NAME = 'Haruko'
+
+	def on_block(self):
+		self.defence_level = 100500
+
+	def on_hit(self):
+		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,50,16,1)
+		self.consoleInfo('strike')
+
+	def on_hurt(self, damage):
+		self.consoleInfo('damaged',damage)
+
+	def on_smash(self):
+		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,50,32,1)
+		self.consoleInfo('smashing')
+
+class AtomskFighter(PlayerBase):
+	FIGHTER_NAME = 'Atomsk'
+	pass
