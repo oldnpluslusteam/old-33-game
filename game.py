@@ -312,10 +312,10 @@ class StartupScreen(Screen):
 		self.pushLayerFront(GameLayer(game=game,camera=Camera()))
 
 		self.pushLayerFront(ProgressBar(grow_origin='top-left',
-			expression=lambda: game.getEntityById('player-left').healeh / 100.0,
+			expression=lambda: game.getEntityById('player-left').health / 100.0,
 			layout=ProgressBar.LEFT_LAYOUT))
 		self.pushLayerFront(ProgressBar(grow_origin='top-right',
-			expression=lambda: game.getEntityById('player-right').healeh / 100.0,
+			expression=lambda: game.getEntityById('player-right').health / 100.0,
 			layout=ProgressBar.RIGHT_LAYOUT))
 
 		ssound.Preload('rc/snd/1.wav',['alias0'])
@@ -360,7 +360,7 @@ class NaotaFighter(PlayerBase):
 		self.defence_level = 100500
 
 	def on_hit(self):
-		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,50,16,1)
+		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,2,16,1)
 		self.consoleInfo('strike')
 
 	def on_hurt(self, damage):
@@ -370,6 +370,9 @@ class NaotaFighter(PlayerBase):
 		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,50,32,1)
 		self.consoleInfo('smashing')
 
+	def on_throw(self):
+		Hurter.static_init()
+
 class HarukoFighter(PlayerBase):
 	FIGHTER_NAME = 'Haruko'
 
@@ -377,7 +380,7 @@ class HarukoFighter(PlayerBase):
 		self.defence_level = 100500
 
 	def on_hit(self):
-		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,50,16,1)
+		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,4,16,1)
 		self.consoleInfo('strike')
 
 	def on_hurt(self, damage):
