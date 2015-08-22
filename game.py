@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # coding=UTF-8
 
+import math
+
 from fwk.ui.screen import Screen
 from fwk.ui.console import GAME_CONSOLE
 
@@ -25,18 +27,50 @@ class TestEntity(GameEntity,GameEntity.mixin.Animation,GameEntity.mixin.Movement
 		self.angularVelocity = 100
 		self.i = 0
 		self.think()
+		self.addTags('camera-target')
 
 	def think(self):
-		if self.i > 10:
-			return self.destroy()
+		# if self.i > 10:
+		# 	return self.destroy()
 		self.game.scheduleAfter(1.0,self.think)
 		self.position = (self.i*10 % 40,-self.i*20 % 50)
-		self.velocity = (self.i*2353 % 100 - 50,-self.i*5423 % 110 - 55)
+		# self.velocity = (self.i*2353 % 200 - 100,-self.i*5423 % 350 - 175)
+		self.velocity = (100*(-1 if self.i % 2 == 0 else 1),0)
 		self.i += 1
 
-@GameEntity.defineClass('test-player')
-class TestPlayer(GameEntity,GameEntity.mixin.Sprite,GameEntity.mixin.CameraTarget,GameEntity.mixin.Movement):
-	pass
+@GameEntity.defineClass('camera-controller')
+class FightingCameraController(GameEntity,GameEntity.mixin.CameraTarget):
+	def spawn(self):
+		self._target_focus = 0,0
+		self._target_size = 100, 100
+		self._pad = 50,50
+		self._interp = 1.0
+		self._offset = 0, 0
+
+	def update(self,dt):
+		targets = self.game.getEntitiesByTag('camera-target')
+
+		p = self.position
+		bl = self.position # min
+		tr = self.position # max
+
+		for target in targets:
+			p = p[0] + target.position[0], p[1] + target.position[1]
+			bl = min(bl[0], target.position[0]), min(bl[1], target.position[1])
+			tr = max(tr[0], target.position[0]), max(tr[1], target.position[1])
+		p = p[0] / float(len(targets)+1), p[1] / float(len(targets)+1)
+
+		self.position = self._offset[0] + p[0] * self._interp + self.position[0] * (1.0 - self._interp), \
+						self._offset[1] + p[1] * self._interp + self.position[1] * (1.0 - self._interp)
+
+		self._target_size = 2*max(p[0]-bl[0],tr[0]-p[0]) + self._pad[0], 2*max(p[1]-bl[1],tr[1]-p[1]) + self._pad[1]
+		self._interp = math.pow(2.0,dt-1.0) / 2.0
+
+	def updateCamera(self,camera):
+		GameEntity.mixin.CameraTarget.updateCamera(self,camera)
+		iscale = 1.0/camera.scale
+		itarget_scale = max(self._target_size[0]/camera.size[0],self._target_size[1]/camera.size[1])
+		camera.scale = 1.0/(self._interp * itarget_scale + (1.0-self._interp) * iscale)
 
 @GameEntity.defineClass('static-entity')
 class StaticEntity(GameEntity,GameEntity.mixin.Sprite):
@@ -51,7 +85,9 @@ class GameLayer(GameLayer_):
 	'''
 	def init(self,*args,**kwargs):
 		self._player = self._game.getEntityById('player')
-		self._camera.setController(self._player)
+		self._camera_controller = FightingCameraController()
+		self._game.addEntity(self._camera_controller)
+		self._camera.setController(self._camera_controller)
 
 	def on_key_press(self,key,mod):
 		'''
