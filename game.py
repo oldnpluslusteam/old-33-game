@@ -84,6 +84,8 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 	_MOVEMENT_LIMIT_LEFT = -100
 	_MOVEMENT_LIMIT_RIGHT = 100
 
+	FIGHTER_NAME = 'Anonymous'
+
 	events = [
 		('state-change','on_state_change'),
 		('jump','on_jump'),
@@ -107,6 +109,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 		self.defence_level = 0
 
 		self.healeh = 100.0
+
 
 	def update(self,dt):
 		self.velocity = self.velocity[0] - self.velocity[0] * dt, self.velocity[1] - 500 * dt
@@ -169,6 +172,12 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 		if self.state in ('standing','block'):
 			self.velocity = self.velocity[0], 500
 			self.changeState('jump')
+
+	def faceToTarget(self, x):
+		return x if (self.id == 'player-left') else -x
+
+	def consoleInfo(self,*args):
+		GAME_CONSOLE.write("{} ({}) ".format(self.FIGHTER_NAME,self.id),*args)
 
 class Hurter(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Sprite):
 	'''
@@ -345,30 +354,39 @@ class StartupScreen(Screen):
 		pass#GAME_CONSOLE.write('SSC:Key down:',KEY.symbol_string(key),'(',key,') [+',KEY.modifiers_string(mod),']')
 
 class NaotaFighter(PlayerBase):
+	FIGHTER_NAME = 'Naota'
+
 	def on_block(self):
 		self.defence_level = 100500
 
 	def on_hit(self):
-		Hurter.static_init(self.game,self,self.position,(50,0),1,50,16,1)
-		GAME_CONSOLE.write('Naota strike')
+		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,50,16,1)
+		self.consoleInfo('strike')
 
 	def on_hurt(self, damage):
-		GAME_CONSOLE.write('Naota damaged',damage)
-
-class HarukoFighter(PlayerBase):
-	def on_block(self):
-		self.defence_level = 100500
-
-	def on_hit(self):
-		Hurter.static_init(self.game,self,self.position,(50,0),1,50,16,1)
-		GAME_CONSOLE.write('Haruko strike')
-
-	def on_hurt(self, damage):
-		GAME_CONSOLE.write('Haruko damaged',damage)
+		self.consoleInfo('damaged',damage)
 
 	def on_smash(self):
-		Hurter.static_init(self.game,self,self.position,(50,0),1,50,32,1)
-		GAME_CONSOLE.write('Haruko smashing')
+		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,50,32,1)
+		self.consoleInfo('smashing')
+
+class HarukoFighter(PlayerBase):
+	FIGHTER_NAME = 'Haruko'
+
+	def on_block(self):
+		self.defence_level = 100500
+
+	def on_hit(self):
+		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,50,16,1)
+		self.consoleInfo('strike')
+
+	def on_hurt(self, damage):
+		self.consoleInfo('damaged',damage)
+
+	def on_smash(self):
+		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,50,32,1)
+		self.consoleInfo('smashing')
 
 class AtomskFighter(PlayerBase):
+	FIGHTER_NAME = 'Atomsk'
 	pass
