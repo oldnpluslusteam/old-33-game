@@ -67,6 +67,10 @@ class FightingCameraController(GameEntity,GameEntity.mixin.CameraTarget):
 		self._target_size = 2*max(p[0]-bl[0],tr[0]-p[0]) + self._pad[0], 2*max(p[1]-bl[1],tr[1]-p[1]) + self._pad[1]
 		self._interp = math.pow(2.0,dt-1.0) / 2.0
 
+	def initCamera(self,camera):
+		self._interp = 1
+		self.updateCamera(camera)
+
 	def updateCamera(self,camera):
 		GameEntity.mixin.CameraTarget.updateCamera(self,camera)
 		iscale = 1.0/camera.scale
@@ -79,7 +83,13 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 	_MOVEMENT_LIMIT_RIGHT = 100
 
 	events = [
-		('state-change','on_state_change')
+		('state-change','on_state_change'),
+		('jump','on_jump'),
+		('hit','on_hit'),
+		('block','on_block'),
+		('smash','on_smash'),
+		('throw','on_throw'),
+		('special','on_special')
 	]
 
 	def spawn(self):
@@ -112,7 +122,6 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 				self.velocity = 0, self.velocity[1]
 				self.position = right.position[0] - (self.width + right.width)/2, self.position[1]
 
-
 	def changeState(self,to,fromState=None):
 		if fromState is None or fromState == self.state:
 			self.state = to
@@ -125,28 +134,36 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 	def hurt(self,hurter):
 		if self.defence_level < hurter.level:
 			self.healeh -= hurter.damage
+			self.trigger('hurt',hurter.damage)
+
+	def specialAvailiable(self):
+		return False
 
 	def do_go(self,direction):
 		if self.state != 'lying':
 			self.velocity = direction * 100, self.velocity[1]
 
 	def do_hit(self):
-		pass
-
-	def do_smash(self):
-		pass
+		if self.state == 'standing':
+			self.trigger('hit')
+		elif self.state == 'jump':
+			self.trigger('smash')
 
 	def do_block(self):
-		pass
+		if self.state == 'standing':
+			self.trigger('block')
 
 	def do_throw(self):
-		pass
+		if state in ('standing','block'):
+			self.changeState('standing')
+			self.trigger('throw')
 
 	def do_special(self):
-		pass
+		if self.specialAvailiable():
+			self.trigger('special')
 
 	def do_jump(self):
-		if self.state == 'standing':
+		if self.state in ('standing','block'):
 			self.velocity = self.velocity[0], 500
 			self.changeState('jump')
 
@@ -192,7 +209,6 @@ class GameLayer(GameLayer_):
 		KEY.A : {'player': 'left', 'action': 'go', 'kw': {'direction':-1}},
 		KEY.D : {'player': 'left', 'action': 'go', 'kw': {'direction':1}},
 		KEY.Z : {'player': 'left', 'action': 'hit'},
-		KEY.X : {'player': 'left', 'action': 'smash'},
 		KEY.C : {'player': 'left', 'action': 'special'},
 		KEY.V : {'player': 'left', 'action': 'throw'},
 		KEY.B : {'player': 'left', 'action': 'block'},
@@ -201,7 +217,6 @@ class GameLayer(GameLayer_):
 		KEY.LEFT : {'player': 'right', 'action': 'go', 'kw': {'direction':-1}},
 		KEY.RIGHT : {'player': 'right', 'action': 'go', 'kw': {'direction':1}},
 		KEY.NUM_1 : {'player': 'right', 'action': 'hit'},
-		KEY.NUM_2 : {'player': 'right', 'action': 'smash'},
 		KEY.NUM_3 : {'player': 'right', 'action': 'special'},
 		KEY.NUM_4 : {'player': 'right', 'action': 'throw'},
 		KEY.NUM_5 : {'player': 'right', 'action': 'block'},
