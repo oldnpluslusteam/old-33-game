@@ -45,7 +45,7 @@ class FightingCameraController(GameEntity,GameEntity.mixin.CameraTarget):
 	def spawn(self):
 		self._target_focus = 0,0
 		self._target_size = 100, 100
-		self._pad = 50,50
+		self._pad = 600,600
 		self._interp = 1.0
 		self._offset = 0, 0
 		self.id = 'camera-controller'
@@ -81,8 +81,8 @@ class FightingCameraController(GameEntity,GameEntity.mixin.CameraTarget):
 
 class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation):
 	_MOVEMENT_LIMIT_BOTTOM = 0
-	_MOVEMENT_LIMIT_LEFT = -100
-	_MOVEMENT_LIMIT_RIGHT = 100
+	_MOVEMENT_LIMIT_LEFT = -1000
+	_MOVEMENT_LIMIT_RIGHT = 1000
 
 	FIGHTER_NAME = 'Anonymous'
 
@@ -103,7 +103,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 		self.state = 'standing'
 		self.animation = 'stand'
 
-		self.width = 32
+		self.width = 100
 		self.height = 200
 
 		self.defence_level = 0
@@ -112,7 +112,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 
 	def update(self,dt):
-		self.velocity = self.velocity[0] - self.velocity[0] * dt, self.velocity[1] - 500 * dt
+		self.velocity = self.velocity[0] - self.velocity[0] * dt, self.velocity[1] - 1000 * dt
 		if self.position[1] <= PlayerBase._MOVEMENT_LIMIT_BOTTOM:
 			self.changeState('standing')
 		self.position = min(PlayerBase._MOVEMENT_LIMIT_RIGHT,max(PlayerBase._MOVEMENT_LIMIT_LEFT,self.position[0])), \
@@ -147,7 +147,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 	def do_go(self,direction):
 		if self.state != 'lying':
-			self.velocity = direction * 100, self.velocity[1]
+			self.velocity = direction * 1000, self.velocity[1]
 
 	def do_hit(self):
 		if self.state == 'standing':
@@ -170,7 +170,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 	def do_jump(self):
 		if self.state in ('standing','block'):
-			self.velocity = self.velocity[0], 500
+			self.velocity = self.velocity[0], 1000
 			self.changeState('jump')
 
 	def faceToTarget(self, x):
@@ -305,7 +305,7 @@ class StartupScreen(Screen):
 		for pid in ('player-left','player-right'):
 			p = (NaotaFighter()if pid == 'player-right' else HarukoFighter())
 			game.addEntity(p)
-			p.animations = 'rc/ani/player-test.json'
+			p.animations = 'rc/ani/player-test-'+pid+'.json'
 			p.position = 100 if pid == 'player-right' else -100, 0
 			p.id = pid
 

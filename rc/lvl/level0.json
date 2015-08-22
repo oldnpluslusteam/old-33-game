@@ -2,8 +2,15 @@
 	"entities" : [
 		{
 			"_class": "static-entity",
-			"sprite": "rc/img/256x256bg.png",
-			"spriteAnchor": "center"
+			"sprite": "rc/img/bg-1.jpg",
+			"spriteAnchor": "center",
+			"position": [0,220]
+		},
+		{
+			"_class": "static-entity",
+			"sprite": "rc/img/bg-bridge.png",
+			"spriteAnchor": "center",
+			"position": [0,220]
 		},
 		{
 			"_class": "camera-controller"
