@@ -3,6 +3,8 @@
 
 import math
 
+from pyglet import gl
+
 from fwk.ui.screen import Screen
 from fwk.ui.console import GAME_CONSOLE
 
@@ -245,6 +247,30 @@ class GameLayer(GameLayer_):
 		'''
 		self._player.position = self._camera.unproject((x,y))
 
+class ProgressBar(GUIItemLayer):
+	LEFT_LAYOUT  = {'left': 10, 'top': 10,'height': 30,'width': 100}
+	RIGHT_LAYOUT = {'right': 10,'top': 10,'height': 30,'width': 100}
+	def init(self,grow_origin,expression,*args,**kwargs):
+		self._expression = expression
+		self._grow_origin = grow_origin
+		self.back = _9Tiles(LoadTexture('rc/img/ui-frames.png'),Rect(left=12,bottom=0,width=12,height=12))
+		self.front = _9Tiles(LoadTexture('rc/img/ui-frames.png'),Rect(left=12,bottom=0,width=12,height=12))
+		self._inrect = None
+		self._expRes = 65595
+
+	def draw(self):
+		self.back.draw(self.rect)
+		k = self._expression()
+		if self._inrect is None or k != self._expRes:
+			self._inrect = self.rect.clone().inset(5).scale(scaleX=k,scaleY=1,origin=self._grow_origin)
+			self._expRes = k
+
+		self.front.draw(self._inrect)
+
+	def on_layout_updated(self):
+		self._inrect = None
+
+
 @Screen.ScreenClass('STARTUP')
 class StartupScreen(Screen):
 	def init(self,*args,**kwargs):
@@ -263,6 +289,13 @@ class StartupScreen(Screen):
 			p.id = pid
 
 		self.pushLayerFront(GameLayer(game=game,camera=Camera()))
+
+		self.pushLayerFront(ProgressBar(grow_origin='top-left',
+			expression=lambda: game.getEntityById('player-left').healeh / 100.0,
+			layout=ProgressBar.LEFT_LAYOUT))
+		self.pushLayerFront(ProgressBar(grow_origin='top-right',
+			expression=lambda: game.getEntityById('player-right').healeh / 100.0,
+			layout=ProgressBar.RIGHT_LAYOUT))
 
 		ssound.Preload('rc/snd/1.wav',['alias0'])
 
