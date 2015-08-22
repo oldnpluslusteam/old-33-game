@@ -72,6 +72,76 @@ class FightingCameraController(GameEntity,GameEntity.mixin.CameraTarget):
 		itarget_scale = max(self._target_size[0]/camera.size[0],self._target_size[1]/camera.size[1])
 		camera.scale = 1.0/(self._interp * itarget_scale + (1.0-self._interp) * iscale)
 
+class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation):
+	_MOVEMENT_LIMIT_BOTTOM = 0
+	_MOVEMENT_LIMIT_LEFT = -100
+	_MOVEMENT_LIMIT_RIGHT = 100
+
+	def spawn(self):
+		self.addTags('camera-target','player')
+
+		self.state = 'standing'
+		self.animation = 'stand'
+
+		self.width = 100
+		self.height = 200
+
+		self.defence_level = 0
+
+		self.healeh = 100.0
+
+	def update(self,dt):
+		self.velocity = self.velocity[0] - self.velocity[0] * dt, self.velocity[1] - 10
+		self.position = min(PlayerBase._MOVEMENT_LIMIT_RIGHT,max(PlayerBase._MOVEMENT_LIMIT_LEFT,self.position[0])), \
+						min(PlayerBase._MOVEMENT_LIMIT_BOTTOM,self.position[1])
+
+	def hurt(self,hurter):
+		if self.defence_level < hurter.level:
+			self.healeh -= hurter.damage
+
+	def do_go(self,direction):
+		if self.state != 'lying':
+			self.velocity = direction * 50, self.velocity[1]
+
+	def do_hit(self):
+		pass
+
+	def do_smash(self):
+		pass
+
+	def do_throw(self):
+		pass
+
+	def do_special(self):
+		pass
+
+	def do_jump(self):
+		if self.state == 'standing':
+			self.velocity = self.velocity[0], 10
+
+class Hurter(GameEntity,GameEntity.mixin.Movement):
+	def __init__(self,game,owner,position,velocity,ttl,damage,radius,level):
+		GameEntity.__init__(self)
+		game.addEntity(self)
+
+		self.position = position
+		self.velocity = velocity
+		self.owner = owner
+		self.damage = damage
+		self.radius = radius
+		self.level = level
+		game.scheduleAfter(ttl,self.destroy)
+
+	def intersectsPlayer(self,player):
+		pass #TODO: Искать пересечение с игроком
+
+	def update(self,dt):
+		for player in self.game.getEntitiesByTag('player'):
+			if player != self.owner:
+				if self.intersectsPlayer(player):
+					player.hurt(self)
+					self.destroy()
+
 @GameEntity.defineClass('static-entity')
 class StaticEntity(GameEntity,GameEntity.mixin.Sprite):
 	'''
