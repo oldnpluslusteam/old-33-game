@@ -2,7 +2,7 @@
 	"entities" : [
 		{
 			"_class": "background-entity",
-			"sprite": "rc/img/bg-1.jpg",
+			"sprite": "rc/img/bg-0.jpg",
 			"spriteAnchor": "center",
 			"position": [0,220]
 		},
