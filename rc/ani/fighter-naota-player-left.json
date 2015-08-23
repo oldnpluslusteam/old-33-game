@@ -10,13 +10,13 @@
 	"lying" : [
 		{
 			"img" : "rc/img/fg-boy-dead-0.png",
-			"t" : 1,
+			"t" : 0.1,
 			"anchor" : "center",
 			"transform": {"flip_x":true}
 		},
 		{
 			"img" : "rc/img/fg-boy-dead-1.png",
-			"t" : 1,
+			"t" : 0.1,
 			"anchor" : "center",
 			"transform": {"flip_x":true}
 		}
@@ -72,7 +72,7 @@
 	],
 	"block" : [
 		{
-			"img" : "rc/img/fg-boy-block.png",
+			"img" : "rc/img/fg-boy-throw.png",
 			"t" : 666,
 			"anchor" : "center",
 			"transform": {"flip_x":true}

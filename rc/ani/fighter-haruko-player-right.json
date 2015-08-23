@@ -9,10 +9,16 @@
 	],
 	"lying" : [
 		{
-			"img" : "rc/img/fg-girl-st.png",
-			"t" : 1,
+			"img" : "rc/img/fg-girl-death-0.png",
+			"t" : 0.1,
 			"anchor" : "center",
-			"transform": {"flip_x":true,"rotate":90}
+			"transform": {"flip_x":true}
+		},
+		{
+			"img" : "rc/img/fg-girl-death-1.png",
+			"t" : 0.1,
+			"anchor" : "center",
+			"transform": {"flip_x":true}
 		}
 	],
 	"hit" : [
@@ -66,7 +72,7 @@
 	],
 	"block" : [
 		{
-			"img" : "rc/img/fg-girl-block.png",
+			"img" : "rc/img/fg-girl-throw.png",
 			"t" : 666,
 			"anchor" : "center",
 			"transform": {"flip_x":true}
