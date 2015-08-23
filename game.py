@@ -271,6 +271,9 @@ class Hurter(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Sprite):
 		self.scale = (self.radius/16.0)
 		return self
 
+	def spawn(self):
+		self.addTags('hurter')
+
 	def intersectsPlayer(self,player):
 		px,py = player.position
 		x,y = self.position
@@ -442,7 +445,10 @@ class StartupScreen(Screen):
 			},
 			text='Press ENTER to play again',
 			fontSize=17))
-		self.game.getEntityById('camera-controller')._pad = [player.width*2,player.height*2]
+		self.game.getEntityById('camera-controller')._pad = [player.width*3,player.height*3 ]
+
+		for e in self.game.getEntitiesByTag('hurter'):
+			e.damage = 0
 
 class NaotaFighter(PlayerBase):
 	FIGHTER_NAME = 'Naota'
