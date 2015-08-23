@@ -4,7 +4,7 @@
 			"img" : "rc/img/fg-boy-st.png",
 			"t" : 1,
 			"anchor" : "center",
-			"transform": {"flip_x":false}
+			"transform": {"flip_x":true}
 		}
 	],
 	"lying" : [
@@ -12,7 +12,7 @@
 			"img" : "rc/img/fg-boy-st.png",
 			"t" : 1,
 			"anchor" : "center",
-			"transform": {"flip_x":false,"rotate":90}
+			"transform": {"flip_x":true,"rotate":90}
 		}
 	],
 	"hit" : [
@@ -33,7 +33,7 @@
 			"img" : "rc/img/fg-boy-st.png",
 			"t" : 666,
 			"anchor" : "center",
-			"transform": {"flip_x":false}
+			"transform": {"flip_x":true}
 		}
 	],
 	"jump" : [
@@ -61,7 +61,7 @@
 			"img" : "rc/img/fg-boy-st.png",
 			"t" : 666,
 			"anchor" : "center",
-			"transform": {"flip_x":false}
+			"transform": {"flip_x":true}
 		}
 	]
 }

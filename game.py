@@ -455,7 +455,7 @@ class NaotaFighter(PlayerBase):
 			velocity=(self.faceToTarget(1000),0),
 			ttl=0.150,damage=50,radius=16,level=1)
 		self.actionTimeoutAtLeast(0.5)
-		ssound.Play('rc/snd/hop.wav')
+		ssound.Play('rc/snd/hit.wav')
 		self.consoleInfo('strike')
 
 	def on_hurt(self, damage):
@@ -469,7 +469,7 @@ class NaotaFighter(PlayerBase):
 			velocity=(self.faceToTarget(1000),-2000),
 			ttl=0.3,damage=50,radius=100,level=1)
 		self.actionTimeoutAtLeast(1.0)
-		ssound.Play('rc/snd/hop.wav')
+		ssound.Play('rc/snd/smash.wav')
 		self.consoleInfo('smashing')
 
 	def on_throw(self):
@@ -490,7 +490,7 @@ class NaotaFighter(PlayerBase):
 			velocity=(self.faceToTarget(2000),0),
 			ttl=local_ttl,damage=5,radius=100,level=11)
 		self.actionTimeoutAtLeast(local_ttl*2)
-		ssound.Play('rc/snd/hop.wav')
+		ssound.Play('rc/snd/chainsaw.wav')
 		self.consoleInfo('throw')
 
 	def on_jump(self):
@@ -513,7 +513,7 @@ class HarukoFighter(PlayerBase):
 			velocity=(self.faceToTarget(2000),0),
 			ttl=0.150,damage=50,radius=16,level=1)
 		self.actionTimeoutAtLeast(0.5)
-		ssound.Play('rc/snd/hop.wav')
+		ssound.Play('rc/snd/hit.wav')
 		self.consoleInfo('strike')
 
 	def on_hurt(self, damage):
@@ -527,7 +527,7 @@ class HarukoFighter(PlayerBase):
 			velocity=(self.faceToTarget(1000),-2000),
 			ttl=0.3,damage=50,radius=100,level=1)
 		self.actionTimeoutAtLeast(1.0)
-		ssound.Play('rc/snd/hop.wav')
+		ssound.Play('rc/snd/smash.wav')
 		self.consoleInfo('smashing')
 
 	def on_throw(self):
@@ -548,7 +548,7 @@ class HarukoFighter(PlayerBase):
 			velocity=(self.faceToTarget(2000),0),
 			ttl=local_ttl,damage=5,radius=100,level=11)
 		self.actionTimeoutAtLeast(local_ttl*2)
-		ssound.Play('rc/snd/hop.wav')
+		ssound.Play('rc/snd/chainsaw.wav')
 		self.consoleInfo('throw')
 
 	def on_jump(self):
