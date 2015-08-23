@@ -14,5 +14,54 @@
 			"anchor" : "center",
 			"transform": {"flip_x":false,"rotate":90}
 		}
+	],
+	"hit" : [
+		{
+			"img" : "rc/img/fg-boy-jump.png",
+			"t" : 0.2,
+			"anchor" : "center",
+			"transform": {"flip_x":false}
+		},
+		{
+			
+			"img" : "rc/img/fg-boy-hit.png",
+			"t" : 0.3,
+			"anchor" : "center",
+			"transform": {"flip_x":false}
+		},
+		{
+			"img" : "rc/img/fg-boy-st.png",
+			"t" : 666,
+			"anchor" : "center",
+			"transform": {"flip_x":false}
+		}
+	],
+	"jump" : [
+		{
+			"img" : "rc/img/fg-boy-jump.png",
+			"t" : 1,
+			"anchor" : "center",
+			"transform": {"flip_x":false}
+		}
+	],
+	"throw" : [
+		{
+			"img" : "rc/img/fg-boy-jump.png",
+			"t" : 0.2,
+			"anchor" : "center",
+			"transform": {"flip_x":false}
+		},
+		{
+			"img" : "rc/img/fg-boy-throw.png",
+			"t" : 1,
+			"anchor" : "center",
+			"transform": {"flip_x":false}
+		},
+		{
+			"img" : "rc/img/fg-boy-st.png",
+			"t" : 666,
+			"anchor" : "center",
+			"transform": {"flip_x":false}
+		}
 	]
 }

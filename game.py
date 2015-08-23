@@ -153,11 +153,13 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 		self.defence_level = 0
 		self.consoleInfo('state <- ',self.state)
 		if self.state == 'jump':
-			pass
+			self.animation = 'jump'
 		elif self.state == 'block':
 			self.defence_level = 10
 		elif self.state == 'lying':
 			self.animation = 'lying'
+		else:
+			self.animation = 'stand'
 
 	def hurt(self,hurter):
 		if self.health <= 0:
@@ -197,10 +199,11 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 	def do_hit(self):
 		if not self.checkActionTimeout():
 			return
+		self.animation = 'hit'
 		if self.state == 'standing':
-			self.trigger('hit')
+			self.game.scheduleAfter(0.2, self.event('hit'))
 		elif self.state == 'jump':
-			self.trigger('smash')
+			self.game.scheduleAfter(0.2, self.event('smash'))
 
 	def do_block(self):
 		if not self.checkActionTimeout():
@@ -219,7 +222,8 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			return
 		if self.state in ('standing','block'):
 			self.changeState('standing')
-			self.trigger('throw')
+			self.animation = 'throw'
+			self.game.scheduleAfter(0.2, self.event('throw'))
 
 	def do_special(self):
 		if not self.checkActionTimeout():
@@ -233,12 +237,14 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 		if self.state in ('standing','block'):
 			self.velocity = self.velocity[0], 1000
 			self.changeState('jump')
+			self.trigger('jump')
 
 	def faceToTarget(self, x):
 		return x if (self.id == 'player-left') else -x
 
 	def consoleInfo(self,*args):
 		GAME_CONSOLE.write("{} ({}) ".format(self.FIGHTER_NAME,self.id),*args)
+
 
 class Hurter(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Sprite):
 	'''
@@ -383,7 +389,7 @@ class StartupScreen(Screen):
 		game.on('win',self.on_player_win)
 
 		for pid in ('player-left','player-right'):
-			p = (NaotaFighter() if pid != 'player-left' else HarukoFighter())
+			p = (NaotaFighter() if pid == 'player-left' else HarukoFighter())
 			game.addEntity(p)
 			# p.animations = 'rc/ani/player-test-'+pid+'.json'
 			p.position = 100 if pid == 'player-right' else -100, 0
@@ -443,8 +449,8 @@ class NaotaFighter(PlayerBase):
 	def on_configured(self):
 		self.animations = 'rc/ani/fighter-naota-'+self.id+'.json'
 
-	def on_block(self):
-		self.defence_level = 10
+	# def on_block(self):
+	# 	self.defence_level = 10
 
 	def on_hit(self):
 		px,py=self.position
@@ -455,6 +461,7 @@ class NaotaFighter(PlayerBase):
 			velocity=(self.faceToTarget(1000),0),
 			ttl=0.150,damage=50,radius=16,level=1)
 		self.actionTimeoutAtLeast(0.5)
+		ssound.Play('rc/snd/hop.wav')
 		self.consoleInfo('strike')
 
 	def on_hurt(self, damage):
@@ -468,6 +475,7 @@ class NaotaFighter(PlayerBase):
 			velocity=(self.faceToTarget(1000),-2000),
 			ttl=0.3,damage=50,radius=100,level=1)
 		self.actionTimeoutAtLeast(1.0)
+		ssound.Play('rc/snd/hop.wav')
 		self.consoleInfo('smashing')
 
 	def on_throw(self):
@@ -488,7 +496,11 @@ class NaotaFighter(PlayerBase):
 			velocity=(self.faceToTarget(2000),0),
 			ttl=local_ttl,damage=5,radius=100,level=11)
 		self.actionTimeoutAtLeast(local_ttl*2)
+		ssound.Play('rc/snd/hop.wav')
 		self.consoleInfo('throw')
+
+	def on_jump(self):
+		ssound.Play('rc/snd/hop.wav')
 
 class HarukoFighter(PlayerBase):
 	FIGHTER_NAME = 'Haruko'
@@ -496,8 +508,8 @@ class HarukoFighter(PlayerBase):
 	def on_configured(self):
 		self.animations = 'rc/ani/fighter-haruko-'+self.id+'.json'
 
-	def on_block(self):
-		self.defence_level = 10
+	# def on_block(self):
+	# 	self.defence_level = 10
 
 	def on_hit(self):
 		Hurter.static_init(
@@ -507,6 +519,7 @@ class HarukoFighter(PlayerBase):
 			velocity=(self.faceToTarget(2000),0),
 			ttl=0.150,damage=50,radius=16,level=1)
 		self.actionTimeoutAtLeast(0.5)
+		ssound.Play('rc/snd/hop.wav')
 		self.consoleInfo('strike')
 
 	def on_hurt(self, damage):
@@ -520,6 +533,7 @@ class HarukoFighter(PlayerBase):
 			velocity=(self.faceToTarget(1000),-2000),
 			ttl=0.3,damage=50,radius=100,level=1)
 		self.actionTimeoutAtLeast(1.0)
+		ssound.Play('rc/snd/hop.wav')
 		self.consoleInfo('smashing')
 
 	def on_throw(self):
@@ -540,7 +554,11 @@ class HarukoFighter(PlayerBase):
 			velocity=(self.faceToTarget(2000),0),
 			ttl=local_ttl,damage=5,radius=100,level=11)
 		self.actionTimeoutAtLeast(local_ttl*2)
+		ssound.Play('rc/snd/hop.wav')
 		self.consoleInfo('throw')
+
+	def on_jump(self):
+		ssound.Play('rc/snd/hu.wav')
 
 class AtomskFighter(PlayerBase):
 	FIGHTER_NAME = 'Atomsk'
