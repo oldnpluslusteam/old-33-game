@@ -9,10 +9,16 @@
 	],
 	"lying" : [
 		{
-			"img" : "rc/img/fg-boy-st.png",
+			"img" : "rc/img/fg-boy-dead-0.png",
 			"t" : 1,
 			"anchor" : "center",
-			"transform": {"flip_x":true,"rotate":90}
+			"transform": {"flip_x":true}
+		},
+		{
+			"img" : "rc/img/fg-boy-dead-1.png",
+			"t" : 1,
+			"anchor" : "center",
+			"transform": {"flip_x":true}
 		}
 	],
 	"hit" : [
