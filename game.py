@@ -155,7 +155,10 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			self.defence_level = 10
 
 	def hurt(self,hurter):
-		self.consoleInfo('1 ',self.defence_level,' vs ',hurter.level)
+		if self.health <= 0:
+			self.health = 0
+			# TODO: player defeat
+			return
 		if self.defence_level < hurter.level:
 			self.health -= hurter.damage
 			self.trigger('hurt',hurter.damage)
@@ -343,6 +346,7 @@ class ProgressBar(GUIItemLayer):
 	def on_layout_updated(self):
 		self._inrect = None
 
+
 @Screen.ScreenClass('STARTUP')
 class StartupScreen(Screen):
 	def init(self,*args,**kwargs):
@@ -354,7 +358,7 @@ class StartupScreen(Screen):
 		game.loadFromJSON('rc/lvl/level0.json')
 
 		for pid in ('player-left','player-right'):
-			p = (NaotaFighter()if pid == 'player-right' else HarukoFighter())
+			p = (NaotaFighter() if pid == 'player-left' else HarukoFighter())
 			game.addEntity(p)
 			p.animations = 'rc/ani/player-test-'+pid+'.json'
 			p.position = 100 if pid == 'player-right' else -100, 0
@@ -462,6 +466,45 @@ class HarukoFighter(PlayerBase):
 		self.actionTimeoutAtLeast(1.0)
 		self.consoleInfo('smashing')
 
+	def on_throw(self):
+		# время полёта в одну сторону
+		local_ttl = 1.5
+		FlyingGuitar.static_init(
+			game=self.game,
+			position=(self.position[0]+self.faceToTarget(100),self.position[1]+200),
+			velocity=(self.faceToTarget(1500),0),
+			sprite="rc/img/haruko_guitar.png",
+			ttl=local_ttl
+		)
+		Hurter.static_init(
+			game=self.game,
+			owner=self,
+			position=(self.position[0]+self.faceToTarget(100),self.position[1]+200),
+			velocity=(self.faceToTarget(1500),0),
+			ttl=local_ttl,damage=5,radius=32,level=1)
+		self.actionTimeoutAtLeast(local_ttl*2)
+		self.consoleInfo('throw')
+
 class AtomskFighter(PlayerBase):
 	FIGHTER_NAME = 'Atomsk'
 	pass
+
+class FlyingGuitar(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Sprite):
+
+	@staticmethod
+	def static_init(game,position,velocity,sprite,ttl):
+		self = FlyingGuitar()
+		game.addEntity(self)
+
+		self.ttl = ttl
+		self.position = position
+		self.velocity = velocity
+		game.scheduleAfter(self.ttl, self.changeDirection)
+		self.sprite = sprite
+		# self.scale = (self.radius/16.0)
+		return self
+
+	def changeDirection(self):
+		vx,vy =  self.velocity
+		self.velocity = (-vx,vy)
+		self.game.scheduleAfter(self.ttl, self.destroy)
