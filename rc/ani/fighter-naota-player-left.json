@@ -75,7 +75,7 @@
 			"img" : "rc/img/fg-boy-block.png",
 			"t" : 666,
 			"anchor" : "center",
-			"transform": {"flip_x":true}
+			"transform": {"flip_x":false}
 		}
 	]
 }

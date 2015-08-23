@@ -78,6 +78,8 @@ class FightingCameraController(GameEntity,GameEntity.mixin.CameraTarget):
 		iscale = 1.0/camera.scale
 		itarget_scale = max(self._target_size[0]/camera.size[0],self._target_size[1]/camera.size[1])
 		camera.scale = 1.0/(self._interp * itarget_scale + (1.0-self._interp) * iscale)
+		if self.game.currentTime > 0.5:
+			GAME_CONSOLE.visible = False
 
 class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation):
 	_MOVEMENT_LIMIT_BOTTOM = -100
@@ -251,7 +253,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 		GAME_CONSOLE.write("{} ({}) ".format(self.FIGHTER_NAME,self.id),*args)
 
 
-class Hurter(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Sprite):
+class Hurter(GameEntity,GameEntity.mixin.Movement):
 	'''
 	Причинятор ущерба.
 	'''
@@ -456,6 +458,7 @@ class StartupScreen(Screen):
 
 class NaotaFighter(PlayerBase):
 	FIGHTER_NAME = 'Naota'
+	z_index = 134
 
 	def on_configured(self):
 		self.animations = 'rc/ani/fighter-naota-'+self.id+'.json'
@@ -512,6 +515,7 @@ class NaotaFighter(PlayerBase):
 
 class HarukoFighter(PlayerBase):
 	FIGHTER_NAME = 'Haruko'
+	z_index=100
 
 	def on_configured(self):
 		self.animations = 'rc/ani/fighter-haruko-'+self.id+'.json'
@@ -593,5 +597,3 @@ class FlyingGuitar(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Sprite)
 		self.game.scheduleAfter(self.ttl, self.destroy)
 
 music.Play("rc/snd/music/fourth.ogg")
-
-GAME_CONSOLE.visible = False
