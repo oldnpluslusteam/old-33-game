@@ -204,10 +204,10 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			return
 		self.animation = 'hit'
 		if self.state == 'standing':
-			self.actionTimeoutAtLeast(0.5)
+			self.actionTimeoutAtLeast(0.3)
 			self.game.scheduleAfter(0.2, self.event('hit'))
 		elif self.state == 'jump':
-			self.actionTimeoutAtLeast(1)
+			self.actionTimeoutAtLeast(0.7)
 			self.game.scheduleAfter(0.2, self.event('smash'))
 
 	def do_block(self):
