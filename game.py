@@ -214,6 +214,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			self.changeState('block')
 			self.consoleInfo('block start')
 			self.trigger('block')
+			self.animation = 'block'
 
 	def stop_block(self):
 		self.consoleInfo('block end')
@@ -577,3 +578,5 @@ class FlyingGuitar(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Sprite)
 		self.velocity = (-vx,vy)
 		self.angularVelocity = - self.angularVelocity
 		self.game.scheduleAfter(self.ttl, self.destroy)
+
+music.Play("rc/snd/music/fourth.ogg")
