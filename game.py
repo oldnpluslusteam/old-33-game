@@ -408,7 +408,8 @@ class StartupScreen(Screen):
 			p.id = pid
 			p.trigger('configured')
 
-		self.pushLayerFront(GameLayer(game=game,camera=Camera()))
+		self.gameLayer = GameLayer(game=game,camera=Camera())
+		self.pushLayerFront(self.gameLayer)
 
 		self.pushLayerFront(ProgressBar(grow_origin='top-left',
 			expression=lambda: game.getEntityById('player-left').health / 100.0,
@@ -449,6 +450,9 @@ class StartupScreen(Screen):
 
 		for e in self.game.getEntitiesByTag('hurter'):
 			e.damage = 0
+
+		self.gameLayer.ignore('in:key:press')
+		self.gameLayer.ignore('in:key:release')
 
 class NaotaFighter(PlayerBase):
 	FIGHTER_NAME = 'Naota'
@@ -601,3 +605,5 @@ class FlyingGuitar(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Sprite)
 		self.game.scheduleAfter(self.ttl, self.destroy)
 
 music.Play("rc/snd/music/fourth.ogg")
+
+GAME_CONSOLE.visible = False
