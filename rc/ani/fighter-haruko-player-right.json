@@ -53,7 +53,7 @@
 		},
 		{
 			"img" : "rc/img/fg-girl-throw.png",
-			"t" : 1,
+			"t" : 2.2,
 			"anchor" : "center",
 			"transform": {"flip_x":false}
 		},
