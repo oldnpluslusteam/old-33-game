@@ -80,7 +80,7 @@ class FightingCameraController(GameEntity,GameEntity.mixin.CameraTarget):
 		camera.scale = 1.0/(self._interp * itarget_scale + (1.0-self._interp) * iscale)
 
 class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation):
-	_MOVEMENT_LIMIT_BOTTOM = 0
+	_MOVEMENT_LIMIT_BOTTOM = -100
 	_MOVEMENT_LIMIT_LEFT = -1000
 	_MOVEMENT_LIMIT_RIGHT = 1000
 
@@ -121,10 +121,9 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 		return self._action_timeout < self.game.currentTime
 
 	def update(self,dt):
-		# self.velocity = self.velocity[0] - self.velocity[0] * dt, self.velocity[1] - 1000 * dt
-		self.velocity = self.velocity[0], self.velocity[1] - 1000 * dt
+		self.velocity = self.velocity[0], self.velocity[1] - 2000 * dt
 		if self.position[1] <= PlayerBase._MOVEMENT_LIMIT_BOTTOM:
-			self.changeState('standing')
+			self.changeState('standing' if self.state != 'block' else 'block')
 		self.position = min(PlayerBase._MOVEMENT_LIMIT_RIGHT,max(PlayerBase._MOVEMENT_LIMIT_LEFT,self.position[0])), \
 						max(PlayerBase._MOVEMENT_LIMIT_BOTTOM,self.position[1])
 		if self.id == 'player-right':
@@ -143,11 +142,13 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 	def changeState(self,to,fromState=None):
 		if fromState is None or fromState == self.state:
-			self.state = to
-			self.trigger('state-change')
+			if self.state != to:
+				self.state = to
+				self.trigger('state-change')
 
 	def on_state_change(self):
 		self.defence_level = 0
+		self.consoleInfo('state <- ',self.state)
 		if self.state == 'jump':
 			pass
 		elif self.state == 'block':
@@ -156,11 +157,15 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 	def hurt(self,hurter):
 		if self.health <= 0:
 			self.health = 0
-# TODO: player defeat
+			# TODO: player defeat
 			return
 		if self.defence_level < hurter.level:
 			self.health -= hurter.damage
 			self.trigger('hurt',hurter.damage)
+			idst = distance(self.position,hurter.position)
+			self.velocity = self.velocity[0], self.velocity[1] + 1000*(self.position[1] - hurter.position[1])/idst
+		else:
+			k = hurter.level / self.defence_level
 
 	def specialAvailiable(self):
 		return False
@@ -179,7 +184,6 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			self.move[direction] = True
 
 	def stop_go(self,direction):
-		GAME_CONSOLE.write(self.id,self.state,'stop_go()',direction)
 		self.move[direction] = False
 
 	def do_hit(self):
@@ -195,9 +199,11 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			return
 		if self.state == 'standing':
 			self.changeState('block')
+			self.consoleInfo('block start')
 			self.trigger('block')
 
 	def stop_block(self):
+		self.consoleInfo('block end')
 		self.changeState(to='standing',fromState='block')
 
 	def do_throw(self):
@@ -406,7 +412,7 @@ class NaotaFighter(PlayerBase):
 	FIGHTER_NAME = 'Naota'
 
 	def on_block(self):
-		self.defence_level = 100500
+		self.defence_level = 10
 
 	def on_hit(self):
 		Hurter.static_init(
@@ -435,7 +441,7 @@ class HarukoFighter(PlayerBase):
 	FIGHTER_NAME = 'Haruko'
 
 	def on_block(self):
-		self.defence_level = 100500
+		self.defence_level = 10
 
 	def on_hit(self):
 		Hurter.static_init(
