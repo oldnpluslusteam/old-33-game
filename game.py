@@ -202,8 +202,10 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			return
 		self.animation = 'hit'
 		if self.state == 'standing':
+			self.actionTimeoutAtLeast(0.5)
 			self.game.scheduleAfter(0.2, self.event('hit'))
 		elif self.state == 'jump':
+			self.actionTimeoutAtLeast(1)
 			self.game.scheduleAfter(0.2, self.event('smash'))
 
 	def do_block(self):
@@ -224,6 +226,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 		if self.state in ('standing','block'):
 			self.changeState('standing')
 			self.animation = 'throw'
+			self.actionTimeoutAtLeast(2.4)
 			self.game.scheduleAfter(0.2, self.event('throw'))
 
 	def do_special(self):
@@ -457,7 +460,6 @@ class NaotaFighter(PlayerBase):
 			position=(px+self.faceToTarget(50),py),
 			velocity=(self.faceToTarget(1000),0),
 			ttl=0.150,damage=50,radius=16,level=1)
-		self.actionTimeoutAtLeast(0.5)
 		ssound.Play('rc/snd/hit.wav')
 		self.consoleInfo('strike')
 
@@ -471,7 +473,6 @@ class NaotaFighter(PlayerBase):
 			position=(self.position[0]+self.faceToTarget(0),self.position[1]+200),
 			velocity=(self.faceToTarget(1000),-2000),
 			ttl=0.3,damage=50,radius=100,level=1)
-		self.actionTimeoutAtLeast(1.0)
 		ssound.Play('rc/snd/smash.wav')
 		self.consoleInfo('smashing')
 
@@ -492,7 +493,6 @@ class NaotaFighter(PlayerBase):
 			position=(self.position[0]+self.faceToTarget(100),self.position[1]-100),
 			velocity=(self.faceToTarget(2000),0),
 			ttl=local_ttl,damage=5,radius=100,level=11)
-		self.actionTimeoutAtLeast(local_ttl*2)
 		ssound.Play('rc/snd/chainsaw.wav')
 		self.consoleInfo('throw')
 
@@ -515,7 +515,6 @@ class HarukoFighter(PlayerBase):
 			position=self.position,
 			velocity=(self.faceToTarget(2000),0),
 			ttl=0.150,damage=50,radius=16,level=1)
-		self.actionTimeoutAtLeast(0.5)
 		ssound.Play('rc/snd/hit.wav')
 		self.consoleInfo('strike')
 
@@ -529,7 +528,6 @@ class HarukoFighter(PlayerBase):
 			position=(self.position[0]+self.faceToTarget(100),self.position[1]+200),
 			velocity=(self.faceToTarget(1000),-2000),
 			ttl=0.3,damage=50,radius=100,level=1)
-		self.actionTimeoutAtLeast(1.0)
 		ssound.Play('rc/snd/smash.wav')
 		self.consoleInfo('smashing')
 
@@ -550,7 +548,6 @@ class HarukoFighter(PlayerBase):
 			position=(self.position[0]+self.faceToTarget(100),self.position[1]-100),
 			velocity=(self.faceToTarget(2000),0),
 			ttl=local_ttl,damage=5,radius=100,level=11)
-		self.actionTimeoutAtLeast(local_ttl*2)
 		ssound.Play('rc/snd/chainsaw.wav')
 		self.consoleInfo('throw')
 
