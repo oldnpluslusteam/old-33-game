@@ -321,18 +321,18 @@ class GameLayer(GameLayer_):
 		KEY.W : {'player': 'left', 'action': 'jump'},
 		KEY.A : {'player': 'left', 'action': 'go', 'kw': {'direction':-1}},
 		KEY.D : {'player': 'left', 'action': 'go', 'kw': {'direction':1}},
-		KEY.Z : {'player': 'left', 'action': 'hit'},
+		KEY.G : {'player': 'left', 'action': 'hit'},
 		KEY.C : {'player': 'left', 'action': 'special'},
-		KEY.V : {'player': 'left', 'action': 'throw'},
-		KEY.B : {'player': 'left', 'action': 'block'},
+		KEY.J : {'player': 'left', 'action': 'throw'},
+		KEY.H : {'player': 'left', 'action': 'block'},
 
 		KEY.UP : {'player': 'right', 'action': 'jump'},
 		KEY.LEFT : {'player': 'right', 'action': 'go', 'kw': {'direction':-1}},
 		KEY.RIGHT : {'player': 'right', 'action': 'go', 'kw': {'direction':1}},
-		KEY.NUM_1 : {'player': 'right', 'action': 'hit'},
+		KEY.NUM_7 : {'player': 'right', 'action': 'hit'},
 		KEY.NUM_3 : {'player': 'right', 'action': 'special'},
-		KEY.NUM_4 : {'player': 'right', 'action': 'throw'},
-		KEY.NUM_5 : {'player': 'right', 'action': 'block'},
+		KEY.NUM_9 : {'player': 'right', 'action': 'throw'},
+		KEY.NUM_8 : {'player': 'right', 'action': 'block'},
 	}
 
 	def init(self,*args,**kwargs):
@@ -506,7 +506,13 @@ class NaotaFighter(PlayerBase):
 			owner=self,
 			position=(self.position[0]+self.faceToTarget(100),self.position[1]-100),
 			velocity=(self.faceToTarget(2000),0),
-			ttl=local_ttl,damage=19,radius=100,level=11)
+			ttl=local_ttl,damage=12,radius=100,level=11)
+		self.game.scheduleAfter(local_ttl,lambda : Hurter.static_init(
+			game=self.game,
+			owner=self,
+			position=(self.position[0]+self.faceToTarget(100+2500),self.position[1]-100),
+			velocity=(-self.faceToTarget(2000),0),
+			ttl=local_ttl,damage=12,radius=100,level=11))
 		ssound.Play('rc/snd/chainsaw.wav')
 		self.consoleInfo('throw')
 
@@ -562,7 +568,13 @@ class HarukoFighter(PlayerBase):
 			owner=self,
 			position=(self.position[0]+self.faceToTarget(100),self.position[1]-100),
 			velocity=(self.faceToTarget(2000),0),
-			ttl=local_ttl,damage=19,radius=100,level=11)
+			ttl=local_ttl,damage=12,radius=100,level=11)
+		self.game.scheduleAfter(local_ttl,lambda : Hurter.static_init(
+			game=self.game,
+			owner=self,
+			position=(self.position[0]+self.faceToTarget(100+2500),self.position[1]-100),
+			velocity=(-self.faceToTarget(2000),0),
+			ttl=local_ttl,damage=12,radius=100,level=11))
 		ssound.Play('rc/snd/chainsaw.wav')
 		self.consoleInfo('throw')
 
