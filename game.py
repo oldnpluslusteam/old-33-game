@@ -593,3 +593,5 @@ class FlyingGuitar(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Sprite)
 		self.game.scheduleAfter(self.ttl, self.destroy)
 
 music.Play("rc/snd/music/fourth.ogg")
+
+GAME_CONSOLE.visible = False

@@ -72,7 +72,7 @@
 	],
 	"block" : [
 		{
-			"img" : "rc/img/fg-girl-throw.png",
+			"img" : "rc/img/fg-girl-block.png",
 			"t" : 666,
 			"anchor" : "center",
 			"transform": {"flip_x":true}
