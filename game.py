@@ -131,15 +131,15 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			left = self.game.getEntityById('player-left')
 			if (self.position[0]-self.width/2) <= (left.position[0]+left.width/2):
 				self.velocity = 0, self.velocity[1]
-				if self.state == 'standing':
-					self.animation = 'stand'
+				# if self.state == 'standing':
+				# 	self.animation = 'stand'
 				self.position = left.position[0]+(left.width+self.width)/2, self.position[1]
 		elif self.id == 'player-left':
 			right = self.game.getEntityById('player-right')
 			if (self.position[0]+self.width/2) >= (right.position[0]-right.width/2):
 				self.velocity = 0, self.velocity[1]
-				if self.state == 'standing':
-					self.animation = 'stand'
+				# if self.state == 'standing':
+				# 	self.animation = 'stand'
 				self.position = right.position[0] - (self.width + right.width)/2, self.position[1]
 		self.update_go()
 
