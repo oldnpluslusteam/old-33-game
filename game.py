@@ -112,6 +112,8 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 		self._action_timeout = self.game.currentTime
 
+		self.move = {}
+
 	def actionTimeoutAtLeast(self,timeout):
 		self._action_timeout = max(self._action_timeout,self.game.currentTime+timeout)
 
@@ -137,6 +139,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 				self.velocity = 0, self.velocity[1]
 				self.animation = 'stand'
 				self.position = right.position[0] - (self.width + right.width)/2, self.position[1]
+		self.update_go()
 
 	def changeState(self,to,fromState=None):
 		if fromState is None or fromState == self.state:
@@ -147,6 +150,8 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 		self.defence_level = 0
 		if self.state == 'jump':
 			pass
+		elif self.state == 'block':
+			self.defence_level = 10
 
 	def hurt(self,hurter):
 		if self.health <= 0:
@@ -160,20 +165,22 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 	def specialAvailiable(self):
 		return False
 
+	def update_go(self):
+		vx = 0
+		if self.checkActionTimeout():
+			for d,t in self.move.items():
+				if t:
+					vx += d
+			vx *= 1000
+		self.velocity = vx, self.velocity[1]
+
 	def do_go(self,direction):
-		if not self.checkActionTimeout():
-			return
 		if self.state != 'lying':
-			self.velocity = direction * 1000, self.velocity[1]
+			self.move[direction] = True
 
 	def stop_go(self,direction):
 		GAME_CONSOLE.write(self.id,self.state,'stop_go()',direction)
-		if self.state != 'lying':
-			vx = self.velocity[0]
-			vx = vx - direction * 1000
-			self.velocity = vx, self.velocity[1]
-			if vx == 0:
-				self.changeState('standing' if self.position[1] == PlayerBase._MOVEMENT_LIMIT_BOTTOM else 'jump')
+		self.move[direction] = False
 
 	def do_hit(self):
 		if not self.checkActionTimeout():
@@ -360,35 +367,35 @@ class StartupScreen(Screen):
 			expression=lambda: game.getEntityById('player-right').health / 100.0,
 			layout=ProgressBar.RIGHT_LAYOUT))
 
-		ssound.Preload('rc/snd/1.wav',['alias0'])
+		# ssound.Preload('rc/snd/1.wav',['alias0'])
 
-		musmap = {0:'rc/snd/music/Welcome.mp3',1:'rc/snd/music/Time.mp3',2:'rc/snd/music/0x4.mp3'}
+		# musmap = {0:'rc/snd/music/Welcome.mp3',1:'rc/snd/music/Time.mp3',2:'rc/snd/music/0x4.mp3'}
 
-		for x in xrange(0,3):
-			layer = GUITextItem(
-				layout={
-					'width':100,
-					'height':20,
-					'left':50,
-					'right':50,
-					'offset_y':70*x,
-					'padding':[20,10],
-					'force-size':False
-					},
-				text=musmap[x]);
-			layer.on('ui:click',(lambda x: lambda *a: music.Play(musmap[x],loop=True))(x))
-			self.pushLayerFront(layer)
+		# for x in xrange(0,3):
+		# 	layer = GUITextItem(
+		# 		layout={
+		# 			'width':100,
+		# 			'height':20,
+		# 			'left':50,
+		# 			'right':50,
+		# 			'offset_y':70*x,
+		# 			'padding':[20,10],
+		# 			'force-size':False
+		# 			},
+		# 		text=musmap[x]);
+		# 	layer.on('ui:click',(lambda x: lambda *a: music.Play(musmap[x],loop=True))(x))
+		# 	self.pushLayerFront(layer)
 
-		tile = _9Tiles(LoadTexture('rc/img/ui-frames.png'),Rect(left=0,bottom=0,width=12,height=12))
+		# tile = _9Tiles(LoadTexture('rc/img/ui-frames.png'),Rect(left=0,bottom=0,width=12,height=12))
 
-		self.pushLayerFront(GUI9TileItem(
-			tiles=tile,
-			layout = {
-				'left': 100,
-				'right': 100,
-				'top': 200,
-				'bottom': 200
-			}))
+		# self.pushLayerFront(GUI9TileItem(
+		# 	tiles=tile,
+		# 	layout = {
+		# 		'left': 100,
+		# 		'right': 100,
+		# 		'top': 200,
+		# 		'bottom': 200
+		# 	}))
 
 		GAME_CONSOLE.write('Startup screen created.')
 
