@@ -1,7 +1,7 @@
 {
 	"stand" : [
 		{
-			"img" : "rc/img/fg-girl-st.png",
+			"img" : "rc/img/fg-boy-st.png",
 			"t" : 1,
 			"anchor" : "center",
 			"transform": {"flip_x":true}

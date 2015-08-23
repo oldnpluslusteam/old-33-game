@@ -110,9 +110,17 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 		self.health = 100.0
 
+		self._action_timeout = self.game.currentTime
+
+	def actionTimeoutAtLeast(self,timeout):
+		self._action_timeout = max(self._action_timeout,self.game.currentTime+timeout)
+
+	def checkActionTimeout(self):
+		return self._action_timeout < self.game.currentTime
 
 	def update(self,dt):
-		self.velocity = self.velocity[0] - self.velocity[0] * dt, self.velocity[1] - 1000 * dt
+		# self.velocity = self.velocity[0] - self.velocity[0] * dt, self.velocity[1] - 1000 * dt
+		self.velocity = self.velocity[0], self.velocity[1] - 1000 * dt
 		if self.position[1] <= PlayerBase._MOVEMENT_LIMIT_BOTTOM:
 			self.changeState('standing')
 		self.position = min(PlayerBase._MOVEMENT_LIMIT_RIGHT,max(PlayerBase._MOVEMENT_LIMIT_LEFT,self.position[0])), \
@@ -121,11 +129,13 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			left = self.game.getEntityById('player-left')
 			if (self.position[0]-self.width/2) <= (left.position[0]+left.width/2):
 				self.velocity = 0, self.velocity[1]
+				self.animation = 'stand'
 				self.position = left.position[0]+(left.width+self.width)/2, self.position[1]
 		elif self.id == 'player-left':
 			right = self.game.getEntityById('player-right')
 			if (self.position[0]+self.width/2) >= (right.position[0]-right.width/2):
 				self.velocity = 0, self.velocity[1]
+				self.animation = 'stand'
 				self.position = right.position[0] - (self.width + right.width)/2, self.position[1]
 
 	def changeState(self,to,fromState=None):
@@ -134,6 +144,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			self.trigger('state-change')
 
 	def on_state_change(self):
+		self.defence_level = 0
 		if self.state == 'jump':
 			pass
 
@@ -146,29 +157,54 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 		return False
 
 	def do_go(self,direction):
+		if not self.checkActionTimeout():
+			return
 		if self.state != 'lying':
 			self.velocity = direction * 1000, self.velocity[1]
 
+	def stop_go(self,direction):
+		GAME_CONSOLE.write(self.id,self.state,'stop_go()',direction)
+		if self.state != 'lying':
+			vx = self.velocity[0]
+			vx = vx - direction * 1000
+			self.velocity = vx, self.velocity[1]
+			if vx == 0:
+				self.changeState('standing' if self.position[1] == PlayerBase._MOVEMENT_LIMIT_BOTTOM else 'jump')
+
 	def do_hit(self):
+		if not self.checkActionTimeout():
+			return
 		if self.state == 'standing':
 			self.trigger('hit')
 		elif self.state == 'jump':
 			self.trigger('smash')
 
 	def do_block(self):
+		if not self.checkActionTimeout():
+			return
 		if self.state == 'standing':
+			self.changeState('block')
 			self.trigger('block')
 
+	def stop_block(self):
+		self.changeState(to='standing',fromState='block')
+
 	def do_throw(self):
+		if not self.checkActionTimeout():
+			return
 		if self.state in ('standing','block'):
 			self.changeState('standing')
 			self.trigger('throw')
 
 	def do_special(self):
+		if not self.checkActionTimeout():
+			return
 		if self.specialAvailiable():
 			self.trigger('special')
 
 	def do_jump(self):
+		if not self.checkActionTimeout():
+			return
 		if self.state in ('standing','block'):
 			self.velocity = self.velocity[0], 1000
 			self.changeState('jump')
@@ -262,11 +298,13 @@ class GameLayer(GameLayer_):
 			kwa = k.get('kw',{})
 			getattr(self._players[k['player']],'do_'+k['action'])(**kwa);
 
-	def on_mouse_press(self,x,y,b,mod):
-		'''
-		Управление с мыши.
-		'''
-		self._player.position = self._camera.unproject((x,y))
+	def on_key_release(self,key,mod):
+		if key in GameLayer._KEYMAP:
+			k = GameLayer._KEYMAP[key]
+			kwa = k.get('kw',{})
+			fn = getattr(self._players[k['player']],'stop_'+k['action'],None)
+			if fn is not None:
+				fn(**kwa)
 
 class ProgressBar(GUIItemLayer):
 	LEFT_LAYOUT  = {'left': 10, 'top': 10,'height': 30,'width': 100}
@@ -312,7 +350,7 @@ class StartupScreen(Screen):
 		self.pushLayerFront(GameLayer(game=game,camera=Camera()))
 
 		self.pushLayerFront(ProgressBar(grow_origin='top-left',
-			expression=lambda: game.getEntityById('player-left').health / 100.0,
+			expression=lambda: game.getEntityById('player-left').healeh / 100.0,
 			layout=ProgressBar.LEFT_LAYOUT))
 		self.pushLayerFront(ProgressBar(grow_origin='top-right',
 			expression=lambda: game.getEntityById('player-right').health / 100.0,
@@ -360,18 +398,27 @@ class NaotaFighter(PlayerBase):
 		self.defence_level = 100500
 
 	def on_hit(self):
-		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,2,16,1)
+		Hurter.static_init(
+			game=self.game,
+			owner=self,
+			position=self.position,
+			velocity=(self.faceToTarget(1000),0),
+			ttl=0.150,damage=50,radius=16,level=1)
+		self.actionTimeoutAtLeast(0.5)
 		self.consoleInfo('strike')
 
 	def on_hurt(self, damage):
 		self.consoleInfo('damaged',damage)
 
 	def on_smash(self):
-		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,50,32,1)
+		Hurter.static_init(
+			game=self.game,
+			owner=self,
+			position=(self.position[0]+self.faceToTarget(100),self.position[1]+200),
+			velocity=(self.faceToTarget(1000),-1000),
+			ttl=0.3,damage=50,radius=100,level=1)
+		self.actionTimeoutAtLeast(1.0)
 		self.consoleInfo('smashing')
-
-	def on_throw(self):
-		Hurter.static_init()
 
 class HarukoFighter(PlayerBase):
 	FIGHTER_NAME = 'Haruko'
@@ -380,14 +427,26 @@ class HarukoFighter(PlayerBase):
 		self.defence_level = 100500
 
 	def on_hit(self):
-		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,4,16,1)
+		Hurter.static_init(
+			game=self.game,
+			owner=self,
+			position=self.position,
+			velocity=(self.faceToTarget(2000),0),
+			ttl=0.150,damage=50,radius=16,level=1)
+		self.actionTimeoutAtLeast(0.5)
 		self.consoleInfo('strike')
 
 	def on_hurt(self, damage):
 		self.consoleInfo('damaged',damage)
 
 	def on_smash(self):
-		Hurter.static_init(self.game,self,self.position,(self.faceToTarget(50),0),1,50,32,1)
+		Hurter.static_init(
+			game=self.game,
+			owner=self,
+			position=(self.position[0]+self.faceToTarget(100),self.position[1]+200),
+			velocity=(self.faceToTarget(1000),-2000),
+			ttl=0.3,damage=50,radius=100,level=1)
+		self.actionTimeoutAtLeast(1.0)
 		self.consoleInfo('smashing')
 
 class AtomskFighter(PlayerBase):
