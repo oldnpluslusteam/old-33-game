@@ -377,6 +377,8 @@ class StartupScreen(Screen):
 
 		game = Game()
 
+		self.game = game
+
 		game.loadFromJSON('rc/lvl/level0.json')
 
 		game.listen('win')
@@ -399,43 +401,35 @@ class StartupScreen(Screen):
 			expression=lambda: game.getEntityById('player-right').health / 100.0,
 			layout=ProgressBar.RIGHT_LAYOUT))
 
-		# ssound.Preload('rc/snd/1.wav',['alias0'])
-
-		# musmap = {0:'rc/snd/music/Welcome.mp3',1:'rc/snd/music/Time.mp3',2:'rc/snd/music/0x4.mp3'}
-
-		# for x in xrange(0,3):
-		# 	layer = GUITextItem(
-		# 		layout={
-		# 			'width':100,
-		# 			'height':20,
-		# 			'left':50,
-		# 			'right':50,
-		# 			'offset_y':70*x,
-		# 			'padding':[20,10],
-		# 			'force-size':False
-		# 			},
-		# 		text=musmap[x]);
-		# 	layer.on('ui:click',(lambda x: lambda *a: music.Play(musmap[x],loop=True))(x))
-		# 	self.pushLayerFront(layer)
-
-		# tile = _9Tiles(LoadTexture('rc/img/ui-frames.png'),Rect(left=0,bottom=0,width=12,height=12))
-
-		# self.pushLayerFront(GUI9TileItem(
-		# 	tiles=tile,
-		# 	layout = {
-		# 		'left': 100,
-		# 		'right': 100,
-		# 		'top': 200,
-		# 		'bottom': 200
-		# 	}))
-
 		GAME_CONSOLE.write('Startup screen created.')
 
 	def on_key_press(self,key,mod):
+		if key == KEY.ENTER and self.winner != None:
+			self.next = StartupScreen()
 		pass#GAME_CONSOLE.write('SSC:Key down:',KEY.symbol_string(key),'(',key,') [+',KEY.modifiers_string(mod),']')
 
 	def on_player_win(self,player):
 		GAME_CONSOLE.write('Player #',player.id,' wins.')
+		self.winner = player
+		class _GUITextItem(GUITextItem):
+			def draw(self):
+				self._label.draw()
+		self.pushLayerFront(_GUITextItem(
+			layout = {
+				'width': 10,
+				'height': 10,
+				'bottom': 100
+			},
+			text=player.FIGHTER_NAME+' wins!'))
+		self.pushLayerFront(_GUITextItem(
+			layout = {
+				'width': 10,
+				'height': 10,
+				'bottom': 50
+			},
+			text='Press ENTER to play again',
+			fontSize=17))
+		self.game.getEntityById('camera-controller')._pad = [player.width*2,player.height*2]
 
 class NaotaFighter(PlayerBase):
 	FIGHTER_NAME = 'Naota'
