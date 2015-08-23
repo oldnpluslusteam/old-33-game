@@ -162,13 +162,6 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			self.animation = 'stand'
 
 	def hurt(self,hurter):
-		if self.health <= 0:
-			self.health = 0
-			# TODO: player defeat
-			self.game.unsetEntityTags(self,'camera-target')
-			self.changeState('lying')
-			self.game.trigger('win',hurter.owner)
-			return
 		if self.defence_level < hurter.level:
 			self.health -= hurter.damage
 			self.trigger('hurt',hurter.damage)
@@ -176,6 +169,14 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			self.velocity = self.velocity[0], self.velocity[1] + 1000*(self.position[1] - hurter.position[1])/idst
 		else:
 			k = hurter.level / self.defence_level
+
+		if self.health <= 0:
+			self.health = 0
+			# TODO: player defeat
+			self.game.unsetEntityTags(self,'camera-target')
+			self.changeState('lying')
+			self.game.trigger('win',hurter.owner)
+			return
 
 	def specialAvailiable(self):
 		return False
@@ -368,7 +369,8 @@ class ProgressBar(GUIItemLayer):
 			self._inrect = self.rect.clone().inset(5).scale(scaleX=k,scaleY=1,origin=self._grow_origin)
 			self._expRes = k
 
-		self.front.draw(self._inrect)
+		if k > 0:
+			self.front.draw(self._inrect)
 
 	def on_layout_updated(self):
 		self._inrect = None
@@ -377,6 +379,7 @@ class ProgressBar(GUIItemLayer):
 @Screen.ScreenClass('STARTUP')
 class StartupScreen(Screen):
 	def init(self,*args,**kwargs):
+		self.winner = None
 		gl.glClearColor(0x1d/255.0,0x5b/255.0,0x70/255.0,1)
 
 		# self.pushLayerFront(StaticBackgroundLauer('rc/img/256x256bg.png','fill'))
