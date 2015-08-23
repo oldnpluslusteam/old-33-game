@@ -461,7 +461,7 @@ class HarukoFighter(PlayerBase):
 		self.consoleInfo('smashing')
 
 	def on_throw(self):
-		# время полёта в одну сторону
+		# время полёта в одну сторону подобрано в ручную
 		local_ttl = 1.5
 		FlyingGuitar.static_init(
 			game=self.game,
@@ -475,7 +475,7 @@ class HarukoFighter(PlayerBase):
 			owner=self,
 			position=(self.position[0]+self.faceToTarget(100),self.position[1]+200),
 			velocity=(self.faceToTarget(1500),0),
-			ttl=local_ttl,damage=5,radius=32,level=1)
+			ttl=local_ttl,damage=5,radius=100,level=1)
 		self.actionTimeoutAtLeast(local_ttl*2)
 		self.consoleInfo('throw')
 
