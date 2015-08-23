@@ -69,5 +69,13 @@
 			"anchor" : "center",
 			"transform": {"flip_x":true}
 		}
+	],
+	"block" : [
+		{
+			"img" : "rc/img/fg-boy-block.png",
+			"t" : 666,
+			"anchor" : "center",
+			"transform": {"flip_x":true}
+		}
 	]
 }
