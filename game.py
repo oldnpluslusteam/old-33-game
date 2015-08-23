@@ -460,7 +460,7 @@ class NaotaFighter(PlayerBase):
 			owner=self,
 			position=(px+self.faceToTarget(50),py),
 			velocity=(self.faceToTarget(1000),0),
-			ttl=0.150,damage=50,radius=16,level=1)
+			ttl=0.150,damage=5,radius=16,level=1)
 		ssound.Play('rc/snd/hit.wav')
 		self.consoleInfo('strike')
 
@@ -473,7 +473,7 @@ class NaotaFighter(PlayerBase):
 			owner=self,
 			position=(self.position[0]+self.faceToTarget(0),self.position[1]+200),
 			velocity=(self.faceToTarget(1000),-2000),
-			ttl=0.3,damage=50,radius=100,level=1)
+			ttl=0.3,damage=15,radius=100,level=1)
 		ssound.Play('rc/snd/smash.wav')
 		self.consoleInfo('smashing')
 
@@ -493,7 +493,7 @@ class NaotaFighter(PlayerBase):
 			owner=self,
 			position=(self.position[0]+self.faceToTarget(100),self.position[1]-100),
 			velocity=(self.faceToTarget(2000),0),
-			ttl=local_ttl,damage=5,radius=100,level=11)
+			ttl=local_ttl,damage=19,radius=100,level=11)
 		ssound.Play('rc/snd/chainsaw.wav')
 		self.consoleInfo('throw')
 
@@ -515,7 +515,7 @@ class HarukoFighter(PlayerBase):
 			owner=self,
 			position=self.position,
 			velocity=(self.faceToTarget(2000),0),
-			ttl=0.150,damage=50,radius=16,level=1)
+			ttl=0.150,damage=5,radius=16,level=1)
 		ssound.Play('rc/snd/hit.wav')
 		self.consoleInfo('strike')
 
@@ -528,7 +528,7 @@ class HarukoFighter(PlayerBase):
 			owner=self,
 			position=(self.position[0]+self.faceToTarget(100),self.position[1]+200),
 			velocity=(self.faceToTarget(1000),-2000),
-			ttl=0.3,damage=50,radius=100,level=1)
+			ttl=0.3,damage=15,radius=100,level=1)
 		ssound.Play('rc/snd/smash.wav')
 		self.consoleInfo('smashing')
 
@@ -548,7 +548,7 @@ class HarukoFighter(PlayerBase):
 			owner=self,
 			position=(self.position[0]+self.faceToTarget(100),self.position[1]-100),
 			velocity=(self.faceToTarget(2000),0),
-			ttl=local_ttl,damage=5,radius=100,level=11)
+			ttl=local_ttl,damage=19,radius=100,level=11)
 		ssound.Play('rc/snd/chainsaw.wav')
 		self.consoleInfo('throw')
 
