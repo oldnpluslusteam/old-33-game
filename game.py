@@ -486,7 +486,7 @@ class HarukoFighter(PlayerBase):
 			game=self.game,
 			position=(self.position[0]+self.faceToTarget(100),self.position[1]+100),
 			velocity=(self.faceToTarget(1500),0),
-			sprite="rc/img/haruko_guitar.png",
+			sprite="rc/img/fg-girl-guitar.png",
 			ttl=local_ttl
 		)
 		Hurter.static_init(
@@ -515,6 +515,7 @@ class FlyingGuitar(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Sprite)
 		self.angularVelocity = 1440
 		game.scheduleAfter(self.ttl, self.changeDirection)
 		self.sprite = sprite
+		self.spriteAnchor = 'center'
 		# self.scale = (self.radius/16.0)
 		return self
 
