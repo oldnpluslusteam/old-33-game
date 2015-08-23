@@ -122,21 +122,24 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 	def update(self,dt):
 		self.velocity = self.velocity[0], self.velocity[1] - 2000 * dt
-		if self.position[1] <= PlayerBase._MOVEMENT_LIMIT_BOTTOM:
-			self.changeState('standing' if self.state != 'block' else 'block')
+		if self.position[1] <= PlayerBase._MOVEMENT_LIMIT_BOTTOM \
+			and self.state not in ('block','lying'):
+			self.changeState('standing')
 		self.position = min(PlayerBase._MOVEMENT_LIMIT_RIGHT,max(PlayerBase._MOVEMENT_LIMIT_LEFT,self.position[0])), \
 						max(PlayerBase._MOVEMENT_LIMIT_BOTTOM,self.position[1])
 		if self.id == 'player-right':
 			left = self.game.getEntityById('player-left')
 			if (self.position[0]-self.width/2) <= (left.position[0]+left.width/2):
 				self.velocity = 0, self.velocity[1]
-				self.animation = 'stand'
+				if self.state == 'standing':
+					self.animation = 'stand'
 				self.position = left.position[0]+(left.width+self.width)/2, self.position[1]
 		elif self.id == 'player-left':
 			right = self.game.getEntityById('player-right')
 			if (self.position[0]+self.width/2) >= (right.position[0]-right.width/2):
 				self.velocity = 0, self.velocity[1]
-				self.animation = 'stand'
+				if self.state == 'standing':
+					self.animation = 'stand'
 				self.position = right.position[0] - (self.width + right.width)/2, self.position[1]
 		self.update_go()
 
@@ -153,11 +156,16 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 			pass
 		elif self.state == 'block':
 			self.defence_level = 10
+		elif self.state == 'lying':
+			self.animation = 'lying'
 
 	def hurt(self,hurter):
 		if self.health <= 0:
 			self.health = 0
 			# TODO: player defeat
+			self.game.unsetEntityTags(self,'camera-target')
+			self.changeState('lying')
+			self.game.trigger('win',hurter.owner)
 			return
 		if self.defence_level < hurter.level:
 			self.health -= hurter.damage
@@ -172,7 +180,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 
 	def update_go(self):
 		vx = 0
-		if self.checkActionTimeout():
+		if self.checkActionTimeout() and self.state != 'lying':
 			for d,t in self.move.items():
 				if t:
 					vx += d
@@ -363,6 +371,7 @@ class ProgressBar(GUIItemLayer):
 @Screen.ScreenClass('STARTUP')
 class StartupScreen(Screen):
 	def init(self,*args,**kwargs):
+		gl.glClearColor(0x1d/255.0,0x5b/255.0,0x70/255.0,1)
 
 		# self.pushLayerFront(StaticBackgroundLauer('rc/img/256x256bg.png','fill'))
 
@@ -370,12 +379,16 @@ class StartupScreen(Screen):
 
 		game.loadFromJSON('rc/lvl/level0.json')
 
+		game.listen('win')
+		game.on('win',self.on_player_win)
+
 		for pid in ('player-left','player-right'):
-			p = (NaotaFighter() if pid == 'player-left' else HarukoFighter())
+			p = (NaotaFighter() if pid != 'player-left' else HarukoFighter())
 			game.addEntity(p)
-			p.animations = 'rc/ani/player-test-'+pid+'.json'
+			# p.animations = 'rc/ani/player-test-'+pid+'.json'
 			p.position = 100 if pid == 'player-right' else -100, 0
 			p.id = pid
+			p.trigger('configured')
 
 		self.pushLayerFront(GameLayer(game=game,camera=Camera()))
 
@@ -421,8 +434,14 @@ class StartupScreen(Screen):
 	def on_key_press(self,key,mod):
 		pass#GAME_CONSOLE.write('SSC:Key down:',KEY.symbol_string(key),'(',key,') [+',KEY.modifiers_string(mod),']')
 
+	def on_player_win(self,player):
+		GAME_CONSOLE.write('Player #',player.id,' wins.')
+
 class NaotaFighter(PlayerBase):
 	FIGHTER_NAME = 'Naota'
+
+	def on_configured(self):
+		self.animations = 'rc/ani/fighter-naota-'+self.id+'.json'
 
 	def on_block(self):
 		self.defence_level = 10
@@ -473,6 +492,9 @@ class NaotaFighter(PlayerBase):
 
 class HarukoFighter(PlayerBase):
 	FIGHTER_NAME = 'Haruko'
+
+	def on_configured(self):
+		self.animations = 'rc/ani/fighter-haruko-'+self.id+'.json'
 
 	def on_block(self):
 		self.defence_level = 10

@@ -1,0 +1,18 @@
+{
+	"stand" : [
+		{
+			"img" : "rc/img/fg-girl-st.png",
+			"t" : 1,
+			"anchor" : "center",
+			"transform": {"flip_x":false}
+		}
+	],
+	"lying" : [
+		{
+			"img" : "rc/img/fg-girl-st.png",
+			"t" : 1,
+			"anchor" : "center",
+			"transform": {"flip_x":false,"rotate":90}
+		}
+	]
+}
