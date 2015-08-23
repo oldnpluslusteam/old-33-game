@@ -198,7 +198,7 @@ class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation
 		self.move[direction] = False
 
 	def do_hit(self):
-		if not self.checkActionTimeout():
+		if (not self.checkActionTimeout()) or self.health <= 0:
 			return
 		self.animation = 'hit'
 		if self.state == 'standing':
