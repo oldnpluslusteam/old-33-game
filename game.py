@@ -276,6 +276,19 @@ class StaticEntity(GameEntity,GameEntity.mixin.Sprite):
 	'''
 	z_index = -1
 
+@GameEntity.defineClass('background-entity')
+class BGEntity(GameEntity,GameEntity.mixin.Sprite):
+	z_index = -2
+
+	def on_configured(self):
+		self._base_pos = self.position
+
+	def update(self,dt):
+		ctl = self.game.getEntityById('camera-controller')
+		if ctl is not None:
+			self.position = 0.5*(self._base_pos[0] + ctl.position[0]), \
+							0.5*(self._base_pos[1] + ctl.position[1])
+
 class GameLayer(GameLayer_):
 	'''
 	Наследник игрового слоя.
