@@ -502,11 +502,11 @@ class HarukoFighter(PlayerBase):
 		self.consoleInfo('smashing')
 
 	def on_throw(self):
-		# время полёта в одну сторону
+		# время полёта в одну сторону подобрано в ручную
 		local_ttl = 1.5
 		FlyingGuitar.static_init(
 			game=self.game,
-			position=(self.position[0]+self.faceToTarget(100),self.position[1]+200),
+			position=(self.position[0]+self.faceToTarget(100),self.position[1]+100),
 			velocity=(self.faceToTarget(1500),0),
 			sprite="rc/img/fg-girl-guitar.png",
 			ttl=local_ttl
@@ -514,9 +514,9 @@ class HarukoFighter(PlayerBase):
 		Hurter.static_init(
 			game=self.game,
 			owner=self,
-			position=(self.position[0]+self.faceToTarget(100),self.position[1]+200),
+			position=(self.position[0]+self.faceToTarget(100),self.position[1]+100),
 			velocity=(self.faceToTarget(1500),0),
-			ttl=local_ttl,damage=5,radius=32,level=1)
+			ttl=local_ttl,damage=5,radius=100,level=1)
 		self.actionTimeoutAtLeast(local_ttl*2)
 		self.consoleInfo('throw')
 
@@ -534,6 +534,7 @@ class FlyingGuitar(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Sprite)
 		self.ttl = ttl
 		self.position = position
 		self.velocity = velocity
+		self.angularVelocity = 1440
 		game.scheduleAfter(self.ttl, self.changeDirection)
 		self.sprite = sprite
 		self.spriteAnchor = 'center'
