@@ -530,6 +530,9 @@ class GameScreen(Screen):
 		for e in self.game.getEntitiesByTag('hurter'):
 			e.damage = 0
 
+		for e in self.game.getEntitiesByTag('player'):
+			e.hurt = lambda *a: None
+
 		self.gameLayer.ignore('in:key:press')
 		self.gameLayer.ignore('in:key:release')
 
