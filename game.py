@@ -584,7 +584,8 @@ class PlayerIcon(GUIItemLayer):
 		self.text.layout = self.text.layout
 
 	def draw(self):
-		BlitTextureToRect(PLAYER_CHOICES[self.playerId].ICON_IMAGE,self.rect)
+		BlitTextureToRect((PLAYER_CHOICES[self.playerId].ICON_IMAGE
+			if self.playerId == 'player-right' else PLAYER_CHOICES[self.playerId].ICON_IMAGE_L),self.rect)
 		BlitTextureToRect(PlayerIcon.ARROWS_IMG,self.rect)
 
 	def on_click(self,*args):
@@ -620,6 +621,7 @@ class ChoiceScreen(Screen):
 class NaotaFighter(PlayerBase):
 	FIGHTER_NAME = 'Naota'
 	ICON_IMAGE = LoadTexture('rc/img/fg-boy-st.png')
+	ICON_IMAGE_L = LoadTexture('rc/img/fg-boy-st-l.png')
 	z_index = 134
 
 	def on_configured(self):
@@ -684,6 +686,7 @@ class NaotaFighter(PlayerBase):
 class HarukoFighter(PlayerBase):
 	FIGHTER_NAME = 'Haruko'
 	ICON_IMAGE = LoadTexture('rc/img/fg-girl-st.png')
+	ICON_IMAGE_L = LoadTexture('rc/img/fg-girl-st-l.png')
 	z_index=100
 
 	def on_configured(self):
@@ -777,6 +780,6 @@ PLAYER_DEFAULTS = {'player-left': NaotaFighter, 'player-right': HarukoFighter}
 PLAYER_CHOICES = {'player-left': NaotaFighter, 'player-right': HarukoFighter}
 PLAYER_NEXT = {NaotaFighter: HarukoFighter, HarukoFighter: NaotaFighter}
 
-# music.Play("rc/snd/music/fourth.ogg")
+music.Play("rc/snd/music/fourth.ogg")
 
 GAME_CONSOLE.visible = False
