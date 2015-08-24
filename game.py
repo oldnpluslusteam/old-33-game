@@ -257,8 +257,10 @@ class Hurter(GameEntity,GameEntity.mixin.Movement):
 	'''
 	Причинятор ущерба.
 	'''
+	_FX_PICS = {'hit':['rc/img/star-hit-0.png'],'smash':['rc/img/star-smash-0.png'],'guitar':['rc/img/star-guitar-0.png']}
+
 	@staticmethod
-	def static_init(game,owner,position,velocity,ttl,damage,radius,level):
+	def static_init(game,owner,position,velocity,ttl,damage,radius,level,type_='hit'):
 		self = Hurter()
 		game.addEntity(self)
 
@@ -268,6 +270,7 @@ class Hurter(GameEntity,GameEntity.mixin.Movement):
 		self.damage = damage
 		self.radius = radius
 		self.level = level
+		self.type_ = type_
 		game.scheduleAfter(ttl,self.destroy)
 		self.sprite = "rc/img/32x32fg.png"
 		self.scale = (self.radius/16.0)
@@ -284,14 +287,24 @@ class Hurter(GameEntity,GameEntity.mixin.Movement):
 			   (y-self.radius < py+player.height/2) and\
 			   (y+self.radius > py-player.height/2)
 
+	def spawnFx(self,player):
+		p = (self.position[0] + player.position[0]) / 2.0, (self.position[1] + player.position[1]) / 2.0
+		e = HitFxEntity()
+		self.game.addEntity(e)
+		e.position = p
+		e.sprite = random.choice(self._FX_PICS[self.type_])
+		e.spriteAnchor = 'center'
+		e.rotation = random.randrange(start=-50,stop=50)
+		e.trigger('configured')
+
 	def update(self,dt):
 		for player in self.game.getEntitiesByTag('player'):
 			if player != self.owner:
 				if self.intersectsPlayer(player):
+					self.spawnFx(player)
 					player.hurt(self)
 					self._sprite = None
 					self.destroy()
-
 
 @GameEntity.defineClass('static-entity')
 class StaticEntity(GameEntity,GameEntity.mixin.Sprite):
@@ -312,6 +325,17 @@ class BGEntity(GameEntity,GameEntity.mixin.Sprite):
 		if ctl is not None:
 			self.position = 0.5*(self._base_pos[0] + ctl.position[0]), \
 							0.5*(self._base_pos[1] + ctl.position[1])
+
+import random
+
+class HitFxEntity(GameEntity,GameEntity.mixin.Sprite):
+	z_index = 1000
+	def spawn(self):
+		self.angularVelocity = 10
+		self.game.scheduleAfter(0.1,self.destroy)
+
+	def update(self,dt):
+		self.scale = self.scale + 10.0 * dt
 
 class GameLayer(GameLayer_):
 	'''
@@ -413,7 +437,7 @@ class GUITextItem_(GUITextItem):
 class Timer(GUITextItem_):
 	events = ['update']
 	def on_add_to_screen(self,screen):
-		self._time_left = 10
+		self._time_left = 60
 		self._time_left_int = None
 		self.subscribe(self.screen,'update')
 
@@ -443,6 +467,9 @@ class GameScreen(Screen):
 		self.camera = Camera()
 
 		self.game = game
+
+		self.game.listen('win')
+		self.game.on('win',self.event('win'))
 
 		game.loadFromJSON('rc/lvl/level0.json')
 
@@ -608,7 +635,7 @@ class NaotaFighter(PlayerBase):
 			owner=self,
 			position=(px+self.faceToTarget(50),py),
 			velocity=(self.faceToTarget(1000),0),
-			ttl=0.150,damage=5,radius=16,level=1)
+			ttl=0.150,damage=5,radius=16,level=1,type_='hit')
 		ssound.Play('rc/snd/hit.wav')
 		self.consoleInfo('strike')
 
@@ -621,7 +648,7 @@ class NaotaFighter(PlayerBase):
 			owner=self,
 			position=(self.position[0]+self.faceToTarget(0),self.position[1]+200),
 			velocity=(self.faceToTarget(1000),-2000),
-			ttl=0.3,damage=15,radius=100,level=1)
+			ttl=0.3,damage=15,radius=100,level=1,type_='smash')
 		ssound.Play('rc/snd/smash.wav')
 		self.consoleInfo('smashing')
 
@@ -641,13 +668,13 @@ class NaotaFighter(PlayerBase):
 			owner=self,
 			position=(self.position[0]+self.faceToTarget(100),self.position[1]-100),
 			velocity=(self.faceToTarget(2000),0),
-			ttl=local_ttl,damage=12,radius=100,level=11)
+			ttl=local_ttl,damage=12,radius=100,level=11,type_='guitar')
 		self.game.scheduleAfter(local_ttl,lambda : Hurter.static_init(
 			game=self.game,
 			owner=self,
 			position=(self.position[0]+self.faceToTarget(100+2500),self.position[1]-100),
 			velocity=(-self.faceToTarget(2000),0),
-			ttl=local_ttl,damage=12,radius=100,level=11))
+			ttl=local_ttl,damage=12,radius=100,level=11,type_='guitar'))
 		ssound.Play('rc/snd/chainsaw.wav')
 		self.consoleInfo('throw')
 
@@ -671,7 +698,7 @@ class HarukoFighter(PlayerBase):
 			owner=self,
 			position=self.position,
 			velocity=(self.faceToTarget(2000),0),
-			ttl=0.150,damage=5,radius=16,level=1)
+			ttl=0.150,damage=5,radius=16,level=1,type_='hit')
 		ssound.Play('rc/snd/hit.wav')
 		self.consoleInfo('strike')
 
@@ -684,7 +711,7 @@ class HarukoFighter(PlayerBase):
 			owner=self,
 			position=(self.position[0]+self.faceToTarget(100),self.position[1]+200),
 			velocity=(self.faceToTarget(1000),-2000),
-			ttl=0.3,damage=15,radius=100,level=1)
+			ttl=0.3,damage=15,radius=100,level=1,type_='smash')
 		ssound.Play('rc/snd/smash.wav')
 		self.consoleInfo('smashing')
 
@@ -704,13 +731,13 @@ class HarukoFighter(PlayerBase):
 			owner=self,
 			position=(self.position[0]+self.faceToTarget(100),self.position[1]-100),
 			velocity=(self.faceToTarget(2000),0),
-			ttl=local_ttl,damage=12,radius=100,level=11)
+			ttl=local_ttl,damage=12,radius=100,level=11,type_='guitar')
 		self.game.scheduleAfter(local_ttl,lambda : Hurter.static_init(
 			game=self.game,
 			owner=self,
 			position=(self.position[0]+self.faceToTarget(100+2500),self.position[1]-100),
 			velocity=(-self.faceToTarget(2000),0),
-			ttl=local_ttl,damage=12,radius=100,level=11))
+			ttl=local_ttl,damage=12,radius=100,level=11,type_='guitar'))
 		ssound.Play('rc/snd/chainsaw.wav')
 		self.consoleInfo('throw')
 
@@ -750,4 +777,6 @@ PLAYER_DEFAULTS = {'player-left': NaotaFighter, 'player-right': HarukoFighter}
 PLAYER_CHOICES = {'player-left': NaotaFighter, 'player-right': HarukoFighter}
 PLAYER_NEXT = {NaotaFighter: HarukoFighter, HarukoFighter: NaotaFighter}
 
-music.Play("rc/snd/music/fourth.ogg")
+# music.Play("rc/snd/music/fourth.ogg")
+
+GAME_CONSOLE.visible = False
