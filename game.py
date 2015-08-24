@@ -332,12 +332,12 @@ class HitFxEntity(GameEntity,GameEntity.mixin.Sprite):
 	z_index = 1000
 	def spawn(self):
 		self.angularVelocity = 10
-		self.game.scheduleAfter(1.0,self.destroy)
+		self.game.scheduleAfter(0.6,self.destroy)
 		self._lt = 0.0
 
 	def update(self,dt):
 		self._lt += dt
-		lt = self._lt / 1.0
+		lt = self._lt / 0.6
 		self.scale = lt * 2.0 + 0.5
 		self._sprite.opacity = int((1.0 - lt) * 255)
 
