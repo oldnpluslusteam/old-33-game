@@ -436,7 +436,7 @@ class HpProgressBar(ProgressBar):
 
 class GUITextItem_(GUITextItem):
 	def draw(self):
-		self._label.color = (122,122,122,255)
+		self._label.color = (255,255,0,255)
 		self._label.draw()
 
 class Timer(GUITextItem_):
@@ -482,7 +482,7 @@ class GameScreen(Screen):
 			p = pcl()
 			game.addEntity(p)
 			# p.animations = 'rc/ani/player-test-'+pid+'.json'
-			p.position = 100 if pid == 'player-right' else -100, 0
+			p.position = 500 if pid == 'player-right' else -500, 0
 			p.id = pid
 			p.trigger('configured')
 
