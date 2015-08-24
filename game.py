@@ -432,6 +432,7 @@ class HpProgressBar(ProgressBar):
 
 class GUITextItem_(GUITextItem):
 	def draw(self):
+		self._label.color = (122,122,122,255)
 		self._label.draw()
 
 class Timer(GUITextItem_):
@@ -495,10 +496,15 @@ class GameScreen(Screen):
 		self.pushLayerFront(self.timer)
 
 		self.pushLayerFront(GUITextItem_(layout={'top':20,'width':100,'height':20},text=('ROUND #'+str(GLOBAL_STATE['round']))))
-		self.pushLayerFront(GUITextItem_(layout={'top':40,'left':40,'width':0,'height':0},text=str(GLOBAL_STATE['player-left'])))
-		self.pushLayerFront(GUITextItem_(layout={'top':40,'right':40,'width':0,'height':0},text=str(GLOBAL_STATE['player-right'])))
+		self.counters = {pid : GUITextItem_(layout={'top':40,pid[7:]:40,'width':0,'height':0},text=str(GLOBAL_STATE['player-left'])) for pid in ['player-left','player-right']}
+		for z,x in self.counters.items():
+			self.pushLayerFront(x)
 
 		GAME_CONSOLE.write('Startup screen created.')
+
+	def updateCounters(self):
+		for k in ['player-left','player-right']:
+			self.counters[k].text = str(GLOBAL_STATE[k])
 
 	def on_key_press(self,key,mod):
 		if key == KEY.ENTER and self.freeze:
@@ -530,6 +536,8 @@ class GameScreen(Screen):
 		self.timer.ignore('update')
 
 		self.freeze = True
+
+		self.updateCounters()
 
 	def on_player_win(self,player):
 		GAME_CONSOLE.write('Player #',player.id if player else 'NONE',' wins.')
