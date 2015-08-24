@@ -4,15 +4,78 @@
 			"img" : "rc/img/fg-boy-st.png",
 			"t" : 1,
 			"anchor" : "center",
-			"transform": {"flip_x":true}
+			"transform": {"flip_x":false}
 		}
 	],
 	"lying" : [
 		{
+			"img" : "rc/img/fg-boy-dead-0.png",
+			"t" : 0.1,
+			"anchor" : "center",
+			"transform": {"flip_x":false}
+		},
+		{
+			"img" : "rc/img/fg-boy-dead-1.png",
+			"t" : 0.1,
+			"anchor" : "center",
+			"transform": {"flip_x":false}
+		}
+	],
+	"hit" : [
+		{
+			"img" : "rc/img/fg-boy-jump.png",
+			"t" : 0.2,
+			"anchor" : "center",
+			"transform": {"flip_x":true}
+		},
+		{
+			
+			"img" : "rc/img/fg-boy-hit.png",
+			"t" : 0.3,
+			"anchor" : "center",
+			"transform": {"flip_x":true}
+		},
+		{
 			"img" : "rc/img/fg-boy-st.png",
+			"t" : 666,
+			"anchor" : "center",
+			"transform": {"flip_x":false}
+		}
+	],
+	"jump" : [
+		{
+			"img" : "rc/img/fg-boy-jump.png",
 			"t" : 1,
 			"anchor" : "center",
-			"transform": {"flip_x":false,"rotate":90}
+			"transform": {"flip_x":true}
+		}
+	],
+	"throw" : [
+		{
+			"img" : "rc/img/fg-boy-jump.png",
+			"t" : 0.2,
+			"anchor" : "center",
+			"transform": {"flip_x":true}
+		},
+		{
+			"img" : "rc/img/fg-boy-throw.png",
+			"t" : 2.2,
+			"anchor" : "center",
+			"transform": {"flip_x":true}
+		},
+		{
+			"img" : "rc/img/fg-boy-st.png",
+			"t" : 666,
+			"anchor" : "center",
+			"transform": {"flip_x":false}
+		}
+	],
+	"block" : [
+		{
+			"img" : "rc/img/fg-boy-block.png",
+			"t" : 666,
+			"anchor" : "center",
+			"transform": {"flip_x":true}
 		}
 	]
 }

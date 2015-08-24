@@ -78,8 +78,8 @@ class FightingCameraController(GameEntity,GameEntity.mixin.CameraTarget):
 		iscale = 1.0/camera.scale
 		itarget_scale = max(self._target_size[0]/camera.size[0],self._target_size[1]/camera.size[1])
 		camera.scale = 1.0/(self._interp * itarget_scale + (1.0-self._interp) * iscale)
-		if self.game.currentTime > 0.5:
-			GAME_CONSOLE.visible = False
+		# if self.game.currentTime > 0.5:
+		# 	GAME_CONSOLE.visible = False
 
 class PlayerBase(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Animation):
 	_MOVEMENT_LIMIT_BOTTOM = -100
@@ -361,12 +361,12 @@ class GameLayer(GameLayer_):
 				fn(**kwa)
 
 class ProgressBar(GUIItemLayer):
-	LEFT_LAYOUT  = {'left': 10, 'top': 10,'height': 30,'width': 100}
-	RIGHT_LAYOUT = {'right': 10,'top': 10,'height': 30,'width': 100}
+	LEFT_LAYOUT  = {'height': 30,'width': 100}
+	RIGHT_LAYOUT = {'height': 30,'width': 100}
 	def init(self,grow_origin,expression,*args,**kwargs):
 		self._expression = expression
 		self._grow_origin = grow_origin
-		self.back = _9Tiles(LoadTexture('rc/img/ui-frames.png'),Rect(left=12,bottom=0,width=12,height=12))
+		self.back = _9Tiles(LoadTexture('rc/img/ui-frames.png'),Rect(left=0,bottom=0,width=12,height=12))
 		self.front = _9Tiles(LoadTexture('rc/img/ui-frames.png'),Rect(left=12,bottom=0,width=12,height=12))
 		self._inrect = None
 		self._expRes = 65595
@@ -379,76 +379,120 @@ class ProgressBar(GUIItemLayer):
 			self._expRes = k
 
 		if k > 0:
+			if k < 0.4:
+				gl.glColor3ub(255,0,0)
+			elif k < 0.7:
+				gl.glColor3ub(255,255,0)
+			else:
+				gl.glColor3ub(0,255,0)
 			self.front.draw(self._inrect)
+			gl.glColor3ub(255,255,255)
 
 	def on_layout_updated(self):
 		self._inrect = None
 
+class HpProgressBar(ProgressBar):
+	def init(self,player,*args,**kwargs):
+		self.player = player
 
-@Screen.ScreenClass('STARTUP')
-class StartupScreen(Screen):
+	def draw(self):
+		cam = self.screen.camera
+		pt = self.player.position
+		pt = pt[0], pt[1] + 250
+		pt = cam.project(pt)
+		lay = self.layout
+		lay['bottom'] = int(pt[1])
+		lay['left'] = int(pt[0] - 50)
+		self.layout = lay
+		ProgressBar.draw(self)
+
+class GUITextItem_(GUITextItem):
+	def draw(self):
+		self._label.draw()
+
+class Timer(GUITextItem_):
+	events = ['update']
+	def on_add_to_screen(self,screen):
+		self._time_left = 10
+		self._time_left_int = None
+		self.subscribe(self.screen,'update')
+
+	def update(self,dt):
+		self._time_left -= dt
+		tli = int(self._time_left)
+		if tli <= 0:
+			self._time_left = 0
+			tli = 0
+			self.screen.trigger('round-end')
+		if tli != self._time_left_int:
+			self.text = str(tli)
+			self.layout = self.layout
+
+@Screen.ScreenClass('GAME')
+class GameScreen(Screen):
+	events = [('win','on_player_win'),('round-end','on_round_end')]
+
 	def init(self,*args,**kwargs):
 		self.winner = None
+		self.freeze = False
 		gl.glClearColor(0x1d/255.0,0x5b/255.0,0x70/255.0,1)
 
 		# self.pushLayerFront(StaticBackgroundLauer('rc/img/256x256bg.png','fill'))
 
 		game = Game()
+		self.camera = Camera()
 
 		self.game = game
 
 		game.loadFromJSON('rc/lvl/level0.json')
 
-		game.listen('win')
-		game.on('win',self.on_player_win)
-
-		for pid in ('player-left','player-right'):
-			p = (NaotaFighter() if pid == 'player-left' else HarukoFighter())
+		for pid, pcl in PLAYER_CHOICES.items():
+			p = pcl()
 			game.addEntity(p)
 			# p.animations = 'rc/ani/player-test-'+pid+'.json'
 			p.position = 100 if pid == 'player-right' else -100, 0
 			p.id = pid
 			p.trigger('configured')
 
-		self.gameLayer = GameLayer(game=game,camera=Camera())
+		self.gameLayer = GameLayer(game=game,camera=self.camera)
 		self.pushLayerFront(self.gameLayer)
 
-		self.pushLayerFront(ProgressBar(grow_origin='top-left',
+		self.pushLayerFront(HpProgressBar(grow_origin='top-left',
 			expression=lambda: game.getEntityById('player-left').health / 100.0,
-			layout=ProgressBar.LEFT_LAYOUT))
-		self.pushLayerFront(ProgressBar(grow_origin='top-right',
+			layout=ProgressBar.LEFT_LAYOUT,player=game.getEntityById('player-left')))
+		self.pushLayerFront(HpProgressBar(grow_origin='top-right',
 			expression=lambda: game.getEntityById('player-right').health / 100.0,
-			layout=ProgressBar.RIGHT_LAYOUT))
+			layout=ProgressBar.RIGHT_LAYOUT,player=game.getEntityById('player-right')))
+
+		self.timer = Timer(layout={'top':70,'width':100,'height':20,'force-size':True})
+		self.pushLayerFront(self.timer)
+
+		self.pushLayerFront(GUITextItem_(layout={'top':20,'width':100,'height':20},text=('ROUND #'+str(GLOBAL_STATE['round']))))
+		self.pushLayerFront(GUITextItem_(layout={'top':40,'left':40,'width':0,'height':0},text=str(GLOBAL_STATE['player-left'])))
+		self.pushLayerFront(GUITextItem_(layout={'top':40,'right':40,'width':0,'height':0},text=str(GLOBAL_STATE['player-right'])))
 
 		GAME_CONSOLE.write('Startup screen created.')
 
 	def on_key_press(self,key,mod):
-		if key == KEY.ENTER and self.winner != None:
-			self.next = StartupScreen()
+		if key == KEY.ENTER and self.freeze:
+			if self.isGameOver():
+				self.next = ChoiceScreen()
+			else:
+				self.next = GameScreen()
 		pass#GAME_CONSOLE.write('SSC:Key down:',KEY.symbol_string(key),'(',key,') [+',KEY.modifiers_string(mod),']')
 
-	def on_player_win(self,player):
-		GAME_CONSOLE.write('Player #',player.id,' wins.')
-		self.winner = player
-		class _GUITextItem(GUITextItem):
-			def draw(self):
-				self._label.draw()
-		self.pushLayerFront(_GUITextItem(
-			layout = {
-				'width': 10,
-				'height': 10,
-				'bottom': 100
-			},
-			text=player.FIGHTER_NAME+' wins!'))
-		self.pushLayerFront(_GUITextItem(
+	def isGameOver(self):
+		return (GLOBAL_STATE['round'] > 2) and (GLOBAL_STATE['player-left'] != GLOBAL_STATE['player-right'])
+
+	def freezeGame(self):
+		self.pushLayerFront(GUITextItem_(
 			layout = {
 				'width': 10,
 				'height': 10,
 				'bottom': 50
 			},
-			text='Press ENTER to play again',
+			text='Press ENTER to play again' if self.isGameOver() else 'Press ENTER for next round!',
 			fontSize=17))
-		self.game.getEntityById('camera-controller')._pad = [player.width*3,player.height*3 ]
 
 		for e in self.game.getEntitiesByTag('hurter'):
 			e.damage = 0
@@ -456,8 +500,99 @@ class StartupScreen(Screen):
 		self.gameLayer.ignore('in:key:press')
 		self.gameLayer.ignore('in:key:release')
 
+		self.timer.ignore('update')
+
+		self.freeze = True
+
+	def on_player_win(self,player):
+		GAME_CONSOLE.write('Player #',player.id if player else 'NONE',' wins.')
+		self.winner = player
+		self.pushLayerFront(GUITextItem_(
+			layout = {
+				'width': 10,
+				'height': 10,
+				'bottom': 100
+			},
+			text=((player.FIGHTER_NAME+
+				{'player-left':' (Player #1)', 'player-right':' (Player #2)'}[player.id])
+					if player else 'Nobody')+' wins!'))
+
+		GLOBAL_STATE['round'] += 1
+
+		if player:
+			self.game.getEntityById('camera-controller')._pad = [player.width*3,player.height*3 ]
+			GLOBAL_STATE[player.id] += 1
+
+		self.freezeGame()
+
+	def on_round_end(self):
+		pl = self.game.getEntityById('player-left')
+		pr = self.game.getEntityById('player-right')
+
+		if pl.health > pr.health:
+			return self.trigger('win',pl)
+		elif pr.health > pl.health:
+			return self.trigger('win',pr)
+		else:
+			return self.trigger('win',None)
+
+class PlayerIcon(GUIItemLayer):
+	ARROWS_IMG = LoadTexture('rc/img/ui-arrows.png')
+	KEYZ = {'player-left':[KEY.A,KEY.D],'player-right':[KEY.LEFT,KEY.RIGHT]}
+
+	def init(self,playerId,**kwargs):
+		self.playerId = playerId
+
+	def on_add_to_screen(self,screen):
+		lay = self.layout
+		lay['offset_y'] = -100
+		self.text = GUITextItem_(layout=lay)
+		self.screen.pushLayerFront(self.text)
+		self.updateText()
+		lay['offset_y'] = 150
+		self.screen.pushLayerFront(GUITextItem_(layout=lay,text={'player-left':'Player #1','player-right':'Player #2'}[self.playerId]))
+
+	def updateText(self):
+		self.text.text = PLAYER_CHOICES[self.playerId].FIGHTER_NAME
+		self.text.layout = self.text.layout
+
+	def draw(self):
+		BlitTextureToRect(PLAYER_CHOICES[self.playerId].ICON_IMAGE,self.rect)
+		BlitTextureToRect(PlayerIcon.ARROWS_IMG,self.rect)
+
+	def on_click(self,*args):
+		PLAYER_CHOICES[self.playerId] = PLAYER_NEXT[PLAYER_CHOICES[self.playerId]]
+		self.updateText()
+
+	def on_key_press(self,key,mod):
+		if key in self.KEYZ[self.playerId]:
+			self.on_click()
+
+@Screen.ScreenClass('STARTUP')
+class ChoiceScreen(Screen):
+	def init(self):
+		self.pushLayerFront(StaticBackgroundLauer('rc/img/bg-2.jpg',mode='fill'))
+
+		self.pushLayerFront(PlayerIcon(layout={'width':256,'height':256,'left':50},playerId='player-left'))
+		self.pushLayerFront(PlayerIcon(layout={'width':256,'height':256,'right':50},playerId='player-right'))
+
+		self.pushLayerFront(GUITextItem_(
+			layout = {
+				'width': 10,
+				'height': 10,
+				'bottom': 50
+			},
+			text='Press ENTER to FIGHT!'))
+
+	def on_key_press(self,key,mod):
+		global GLOBAL_STATE
+		if key == KEY.ENTER:
+			GLOBAL_STATE = {'player-left':0,'player-right':0,'round':1}
+			self.next = GameScreen()
+
 class NaotaFighter(PlayerBase):
 	FIGHTER_NAME = 'Naota'
+	ICON_IMAGE = LoadTexture('rc/img/fg-boy-st.png')
 	z_index = 134
 
 	def on_configured(self):
@@ -521,6 +656,7 @@ class NaotaFighter(PlayerBase):
 
 class HarukoFighter(PlayerBase):
 	FIGHTER_NAME = 'Haruko'
+	ICON_IMAGE = LoadTexture('rc/img/fg-girl-st.png')
 	z_index=100
 
 	def on_configured(self):
@@ -607,5 +743,11 @@ class FlyingGuitar(GameEntity,GameEntity.mixin.Movement,GameEntity.mixin.Sprite)
 		self.velocity = (-vx,vy)
 		self.angularVelocity = - self.angularVelocity
 		self.game.scheduleAfter(self.ttl, self.destroy)
+
+GLOBAL_STATE = {'player-left':0,'player-right':0,'round':1}
+PLAYER_VARIANTS = [HarukoFighter,NaotaFighter]
+PLAYER_DEFAULTS = {'player-left': NaotaFighter, 'player-right': HarukoFighter}
+PLAYER_CHOICES = {'player-left': NaotaFighter, 'player-right': HarukoFighter}
+PLAYER_NEXT = {NaotaFighter: HarukoFighter, HarukoFighter: NaotaFighter}
 
 music.Play("rc/snd/music/fourth.ogg")
